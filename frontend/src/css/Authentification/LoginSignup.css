@@ -247,7 +247,195 @@
     color: #666;
     max-width: 80px;
   }
-  
+  /* Theme toggle button styles */
+.theme-toggle {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(123, 104, 238, 0.1);
+}
+
+.theme-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Light theme (default) */
+.light-theme {
+  background: #fff;
+  color: #333;
+}
+
+/* Dark theme */
+.dark-theme {
+  background: #212121;
+  color: #e0e0e0;
+}
+
+.dark-theme .input {
+  background-color: #2d2d2d;
+  border-color: #3d3d3d;
+}
+
+.dark-theme .input input {
+  color: #e0e0e0;
+  background: transparent;
+}
+
+.dark-theme .input::placeholder {
+  color: #909090;
+}
+
+.dark-theme .input:focus-within {
+  background-color: #333333;
+  border-color: #7b68ee;
+
+}
+
+.dark-theme .title h2 {
+  color: #e0e0e0;
+}
+
+.dark-theme .subtitle {
+  color: #aaaaaa;
+}
+
+.dark-theme .forgot-password {
+  color: #b0b0b0;
+}
+
+.dark-theme .forgot-password span {
+  color: #9f75eb;
+}
+
+.dark-theme .submit:not(.gray) {
+  background: #100717;
+}
+
+.dark-theme .submit.gray {
+  background: #3d3d3d !important;
+  color: #aaaaaa !important;
+}
+
+.dark-theme .submit.gray:hover {
+  background: #4d4d4d !important;
+}
+
+.dark-theme .benefits {
+  border-top-color: #3d3d3d;
+}
+
+.dark-theme .benefit span {
+  color: #b0b0b0;
+}
+
+.dark-theme .benefit-icon {
+  background: rgba(123, 104, 238, 0.2);
+}
+
+/* Error text styling */
+.error-text {
+  color: #ff4757;
+  font-size: 12px;
+  margin-left: 10px;
+  margin-top: 4px;
+}
+
+.dark-theme .error-text {
+  color: #ff6b6b;
+}
+
+/* Body background for dark mode */
+body.dark-mode {
+  background: linear-gradient(#1a1a2e, #16213e);
+}
+
+/* Styles pour les messages d'erreur */
+.error-message {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  text-align: left;
+  padding-left: 40px;
+}
+
+.input.error {
+  border: 1px solid #e74c3c;
+}
+
+/* Styles pour l'indicateur de force du mot de passe */
+.password-strength {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: -5px;
+  margin-bottom: 10px;
+  padding-left: 40px;
+  width: 100%;
+}
+
+.strength-meter {
+  width: 100%;
+  height: 5px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  margin-bottom: 5px;
+}
+
+.strength-value {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.strength-value.weak {
+  background-color: #e74c3c;
+}
+
+.strength-value.medium {
+  background-color: #f39c12;
+}
+
+.strength-value.good {
+  background-color: #3498db;
+}
+
+.strength-value.strong {
+  background-color: #2ecc71;
+}
+
+.strength-text {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+/* Pour le mode sombre, vous pouvez ajuster les couleurs */
+.dark-theme .error-message {
+  color: #ff6b6b;
+}
+
+.dark-theme .strength-text {
+  color: #bdc3c7;
+}
+
+.dark-theme .strength-meter {
+  background-color: #434343;
+}
   /* Responsive */
   @media (max-width: 480px) {
     .container {
@@ -312,3 +500,84 @@
   .input:focus-within img {
     opacity: 1;
   }
+
+  /* Styles pour l'interface de récupération de mot de passe */
+.reset-title {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.dark-theme .reset-title {
+  color: #f5f5f5;
+}
+
+.reset-instructions {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  color: #666;
+  padding: 0 20px;
+}
+
+.dark-theme .reset-instructions {
+  color: #bdc3c7;
+}
+
+.reset-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.reset-button, .cancel-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.reset-button {
+  background-color: #5923b7;
+  color: white;
+  flex: 3;
+  margin-right: 10px;
+}
+
+.reset-button:hover {
+  background-color: #5923b7;
+}
+
+.cancel-button {
+  background-color: #e0e0e0;
+  color: #333;
+  flex: 1;
+}
+
+.dark-theme .cancel-button {
+  background-color: #555;
+  color: #f5f5f5;
+}
+
+.cancel-button:hover {
+  background-color: #d0d0d0;
+}
+
+.dark-theme .cancel-button:hover {
+  background-color: #666;
+}
+
+/* Rendre le span dans "Lost Password" cliquable */
+.forgot-password span {
+  cursor: pointer;
+  color: #3498db;
+  text-decoration: underline;
+}
+
+.forgot-password span:hover {
+  color: #5923b7;
+}
