@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom'; // Ajout des hooks de React Router
+
 import '../../css/Authentification/LoginSignup.css'
 import user_icon from '../../assets/icons/etudiant.png'
 import email_icon from '../../assets/icons/gmail.png'
@@ -11,6 +13,12 @@ import sun_icon from '../../assets/icons/soleil.png';
 import moon_icon from '../../assets/icons/lune.png';
 
 const LoginSignup = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const initialAction = location.state?.initialAction || "Sign Up";
+
+
   const [action, setAction] = useState("Sign Up");
   const [darkMode, setDarkMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -37,6 +45,12 @@ const LoginSignup = () => {
     }
   }, [darkMode]);
 
+  useEffect(() => {
+    if (location.state?.initialAction) {
+      setAction(location.state.initialAction);
+    }
+  }, [location.state]);
+  
   const toggleTheme = () => {
     setDarkMode(!darkMode);
   };
@@ -98,7 +112,12 @@ const LoginSignup = () => {
     if (isEmailValid && isPasswordValid) {
       // Tout est valide, vous pouvez continuer avec la connexion ou l'inscription
       console.log('Form is valid, proceeding with', action);
-      // Ajoutez ici votre logique d'authentification
+      
+      // Simulez une authentification réussie
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      // Rediriger vers le tableau de bord après connexion/inscription
+      navigate('/dashboard');
     } else {
       console.log('Form has errors, please correct them');
     }
