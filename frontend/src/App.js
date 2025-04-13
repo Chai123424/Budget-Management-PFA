@@ -1,13 +1,14 @@
-
 import './App.css';
-import LoginSignup from './components/Authentification/LoginSignup';
+import Formulaire from './components/Form';
 
 function App() {
   return (
-    <div>
-      <LoginSignup/>
+    <div >
+      
+      <Formulaire/>
+     
     </div>
-  ); 
+  );
 }
 
 export default App;
