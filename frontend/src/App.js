@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Navbar from './components/common/Navbar';
 import LoginSignup from './components/Authentification/LoginSignup';
 import Home from './components/Home';
+import HowItWorks from './components/HowItWorks';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -50,7 +51,7 @@ function App() {
           {/* Routes publiques */}
           <Route path="/" element={<Home darkMode={darkMode} />} />
           <Route path="/auth" element={<LoginSignup setIsAuthenticated={setIsAuthenticated} />} />
-          
+          <Route path="/how-it-works" element={<HowItWorks darkMode={darkMode} />} /> 
           {/* Routes protégées */}
         </Routes>
       </div>
