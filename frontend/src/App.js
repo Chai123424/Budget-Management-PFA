@@ -1,9 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from './components/common/Navbar';
 import LoginSignup from './components/Authentification/LoginSignup';
 import Home from './components/Home';
 import HowItWorks from './components/HowItWorks';
+import Dashboard from './components/Dashboard';
+
+
+const ProtectedRoute = ({ children, isAuthenticated }) => {
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+  return children;
+};
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -50,9 +59,31 @@ function App() {
         <Routes>
           {/* Routes publiques */}
           <Route path="/" element={<Home darkMode={darkMode} />} />
-          <Route path="/auth" element={<LoginSignup setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/how-it-works" element={<HowItWorks darkMode={darkMode} />} /> 
-          {/* Routes protégées */}
+          <Route 
+            path="/auth" 
+            element={<LoginSignup setIsAuthenticated={setIsAuthenticated} />} 
+          />
+          <Route path="/how-it-works" element={<HowItWorks darkMode={darkMode} />} />
+          
+          {/* Route protégée - Dashboard */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Dashboard darkMode={darkMode} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Redirection après login réussi */}
+          <Route 
+            path="/auth" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/dashboard" replace /> : 
+                <LoginSignup setIsAuthenticated={setIsAuthenticated} />
+            } 
+          />
         </Routes>
       </div>
     </BrowserRouter>

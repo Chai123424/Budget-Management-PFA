@@ -235,8 +235,9 @@
 /* Features */
 .hiw-features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* Forces 4 equal columns */
   gap: 2rem;
+  overflow-x: auto; /* Allows horizontal scrolling if needed */
 }
 
 .hiw-feature-card {

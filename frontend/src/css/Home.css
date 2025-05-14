@@ -823,7 +823,45 @@
   font-size: 1.25rem;
   max-width: 400px;
 }
+/* Make the main section take up at least the full viewport height */
+.finance-hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
+/* Push the footer to the bottom */
+.hero-container {
+  flex: 1;
+}
+
+/* Style the footer */
+.site-footer {
+  width: 100%;
+  padding: 1rem 0;
+  text-align: center;
+  margin-top: auto;
+  position: relative;
+  z-index: 10; /* Ensure it appears above background elements */
+}
+
+/* Dark mode styles for the footer */
+.site-footer.dark-footer {
+  background-color: #1a1a2e;
+  color: #f0f0f0;
+}
+
+/* Light mode styles for the footer */
+.site-footer:not(.dark-footer) {
+  background-color: #f0f0f5;
+  color: #333;
+}
+
+.copyright {
+  margin: 0;
+  font-size: 0.875rem;
+}
 /* Media queries for responsive design */
 @media (max-width: 1024px) {
   .hero-content {

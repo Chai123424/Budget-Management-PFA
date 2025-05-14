@@ -1,0 +1,2238 @@
+/* Base */
+.dbDashboard {
+  display: flex;
+  min-height: 100vh;
+  background-size: 50px 50px;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dbLightTheme {
+  background-color: #f8f9fa;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+  color: #333;
+}
+
+.dbDarkTheme {
+  background-color: #121826;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  color: #e4e6eb;
+}
+
+/* Sidebar */
+.dbSidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  transition: all 0.3s ease;
+  z-index: 100;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.dbLightTheme .dbSidebar {
+  background-color: #fff;
+  border-right: 1px solid rgba(234, 237, 240, 0.7);
+}
+
+.dbDarkTheme .dbSidebar {
+  background-color: #1e2538;
+  border-right: 1px solid rgba(50, 55, 82, 0.7);
+}
+
+.dbSidebarHeader {
+  padding: 24px;
+  border-bottom: 1px solid #eaedf0;
+}
+
+.dbLightTheme .dbSidebarHeader {
+  border-bottom-color: #eaedf0;
+}
+
+.dbDarkTheme .dbSidebarHeader {
+  border-bottom-color: #323752;
+}
+
+.dbLogo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.dbDarkTheme .dbLogo {
+  color: #e4e6eb;
+}
+
+.dbNav {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.dbNavSection {
+  margin-bottom: 28px;
+}
+
+.dbNavTitle {
+  padding: 0 24px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.dbLightTheme .dbNavTitle {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbNavTitle {
+  color: #9ca3af;
+}
+
+.dbNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dbNav li {
+  margin: 4px 0;
+}
+
+.dbNav button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  color: inherit;
+  border-radius: 8px;
+  gap: 14px;
+  transition: all 0.2s;
+  margin: 0 8px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbNav button:hover {
+  background-color: #f5f7fa;
+}
+
+.dbDarkTheme .dbNav button:hover {
+  background-color: #2a3349;
+}
+
+.dbNav li.dbActive button {
+  font-weight: 600;
+}
+
+.dbLightTheme .dbNav li.dbActive button {
+  background-color: #f0f2f5;
+  color: #4f46e5;
+}
+
+.dbDarkTheme .dbNav li.dbActive button {
+  background-color: #2a3349;
+  color: #818cf8;
+}
+
+.dbSidebarFooter {
+  padding: 16px 24px;
+  border-top: 1px solid #eaedf0;
+}
+
+.dbLightTheme .dbSidebarFooter {
+  border-top-color: #eaedf0;
+}
+
+.dbDarkTheme .dbSidebarFooter {
+  border-top-color: #323752;
+}
+
+.dbUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dbAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbAvatar {
+  background-color: #f0f2f5;
+  color: #4f46e5;
+}
+
+.dbDarkTheme .dbAvatar {
+  background-color: #2a3349;
+  color: #818cf8;
+}
+
+.dbUserName {
+  font-weight: 600;
+  margin: 0;
+  font-size: 14px;
+}
+
+.dbUserEmail {
+  margin: 0;
+  font-size: 12px;
+}
+
+.dbLightTheme .dbUserEmail {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbUserEmail {
+  color: #9ca3af;
+}
+
+/* Mobile sidebar */
+@media (max-width: 767px) {
+  .dbSidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .dbSidebar.dbOpen {
+    transform: translateX(0);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .dbOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .dbOverlay.dbVisible {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
+/* Main content */
+.dbMain {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .dbMain {
+    margin-left: 0;
+  }
+}
+
+/* Header */
+.dbHeader {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbHeader {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(234, 237, 240, 0.7);
+}
+
+.dbDarkTheme .dbHeader {
+  background-color: rgba(30, 37, 56, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(50, 55, 82, 0.7);
+}
+
+.dbHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dbHeaderLeft h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dbMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbMenuButton:hover {
+  background-color: #f5f7fa;
+}
+
+.dbDarkTheme .dbMenuButton:hover {
+  background-color: #2a3349;
+}
+
+@media (max-width: 767px) {
+  .dbMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.dbHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dbIconButton,
+.dbThemeToggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbIconButton:hover,
+.dbLightTheme .dbThemeToggle:hover {
+  background-color: #f5f7fa;
+}
+
+.dbDarkTheme .dbIconButton:hover,
+.dbDarkTheme .dbThemeToggle:hover {
+  background-color: #2a3349;
+}
+
+.dbNotificationBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+}
+
+.dbUserDropdown {
+  position: relative;
+}
+
+.dbUserButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dbUserButton span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .dbUserButton span {
+    display: none;
+  }
+}
+
+.dbAvatarSmall {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.dbLightTheme .dbAvatarSmall {
+  background-color: #f0f2f5;
+  color: #4f46e5;
+}
+
+.dbDarkTheme .dbAvatarSmall {
+  background-color: #2a3349;
+  color: #818cf8;
+}
+
+.dbDropdownContent {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  border-radius: 12px;
+  padding: 8px 0;
+  margin-top: 8px;
+  display: none;
+  z-index: 20;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dbLightTheme .dbDropdownContent {
+  background-color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(234, 237, 240, 0.7);
+}
+
+.dbDarkTheme .dbDropdownContent {
+  background-color: #1e2538;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(50, 55, 82, 0.7);
+}
+
+.dbUserDropdown:hover .dbDropdownContent {
+  display: block;
+}
+
+.dbDropdownContent a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbDropdownContent a:hover {
+  background-color: #f5f7fa;
+}
+
+.dbDarkTheme .dbDropdownContent a:hover {
+  background-color: #2a3349;
+}
+
+/* Content */
+.dbContent {
+  flex: 1;
+  padding: 28px;
+}
+
+.dbWelcome {
+  margin-bottom: 28px;
+}
+
+.dbWelcome h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.dbWelcome p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.dbLightTheme .dbWelcome p {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbWelcome p {
+  color: #9ca3af;
+}
+
+/* Tab Navigation */
+.dbTabNav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid;
+  padding-bottom: 10px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.dbTabNav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.dbLightTheme .dbTabNav {
+  border-color: #eaedf0;
+}
+
+.dbDarkTheme .dbTabNav {
+  border-color: #323752;
+}
+
+.dbTabButton {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dbLightTheme .dbTabButton {
+  color: #333;
+}
+
+.dbDarkTheme .dbTabButton {
+  color: #e4e6eb;
+}
+
+.dbLightTheme .dbTabButton.dbActiveTab {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.dbDarkTheme .dbTabButton.dbActiveTab {
+  background-color: #818cf8;
+  color: #1a1d2d;
+}
+
+/* Stats grid */
+.dbStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+  .dbStatsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dbStatsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbStatCard {
+  border-radius: 16px;
+  padding: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dbLightTheme .dbStatCard {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbStatCard {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbLightTheme .dbStatCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dbDarkTheme .dbStatCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dbStatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dbStatTitle {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbStatTitle {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbStatTitle {
+  color: #9ca3af;
+}
+
+.dbStatIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: transform 0.2s;
+}
+
+.dbStatCard:hover .dbStatIcon {
+  transform: scale(1.1);
+}
+
+.dbPurple {
+  background-color: #4f46e5;
+}
+
+.dbBlue {
+  background-color: #3b82f6;
+}
+
+.dbGreen {
+  background-color: #10b981;
+}
+
+.dbOrange {
+  background-color: #f59e0b;
+}
+
+.dbRed {
+  background-color: #ef4444;
+}
+
+.dbStatValue {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dbStatTrend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.dbPositive {
+  color: #10b981;
+}
+
+.dbNegative {
+  color: #ef4444;
+}
+
+.dbNeutral {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbNeutral {
+  color: #9ca3af;
+}
+
+/* Chart */
+.dbStatChart {
+  margin-top: 16px;
+}
+
+.dbChartBars {
+  display: flex;
+  align-items: flex-end;
+  height: 60px;
+  gap: 6px;
+}
+
+.dbBar {
+  flex: 1;
+  background-color: #4f46e5;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.dbBar.dbBlue {
+  background-color: #3b82f6;
+}
+
+.dbChartLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+}
+
+.dbLightTheme .dbChartLabels {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbChartLabels {
+  color: #9ca3af;
+}
+
+/* Progress bar */
+.dbProgressContainer {
+  height: 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbProgressContainer {
+  background-color: #f0f2f5;
+}
+
+.dbDarkTheme .dbProgressContainer {
+  background-color: #2a3349;
+}
+
+.dbProgressBar {
+  height: 100%;
+  background-color: #10b981;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.dbProgressLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbProgressLabels {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbProgressLabels {
+  color: #9ca3af;
+}
+
+/* Pro Tip Card */
+.dbTipCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dbLightTheme .dbTipCard {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbTipCard {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbLightTheme .dbTipCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dbDarkTheme .dbTipCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dbTipHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.dbTipHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dbTipIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #818cf8;
+  color: #fff;
+  transition: transform 0.2s;
+}
+
+.dbTipCard:hover .dbTipIcon {
+  transform: scale(1.1);
+}
+
+.dbTipText {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.dbTipDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dbDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbDot {
+  background-color: #e2e8f0;
+}
+
+.dbDarkTheme .dbDot {
+  background-color: #2a3349;
+}
+
+.dbActiveDot {
+  width: 10px;
+  height: 10px;
+}
+
+.dbLightTheme .dbActiveDot {
+  background-color: #4f46e5;
+}
+
+.dbDarkTheme .dbActiveDot {
+  background-color: #818cf8;
+}
+
+/* Saving Strategies Card */
+.dbSavingCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dbLightTheme .dbSavingCard {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSavingCard {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbLightTheme .dbSavingCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dbDarkTheme .dbSavingCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dbSavingHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.dbSavingHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dbSavingIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f59e0b;
+  color: #fff;
+  transition: transform 0.2s;
+}
+
+.dbSavingCard:hover .dbSavingIcon {
+  transform: scale(1.1);
+}
+
+.dbSavingText {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.dbViewMoreButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbViewMoreButton {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.dbDarkTheme .dbViewMoreButton {
+  background-color: #818cf8;
+  color: #1a1d2d;
+}
+
+.dbLightTheme .dbViewMoreButton:hover {
+  background-color: #4338ca;
+}
+
+.dbDarkTheme .dbViewMoreButton:hover {
+  background-color: #6366f1;
+}
+
+/* AI Services Highlight Card */
+.dbAiServicesCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dbLightTheme .dbAiServicesCard {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+.dbDarkTheme .dbAiServicesCard {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(129, 140, 248, 0.1);
+}
+
+.dbAiServicesHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.dbAiServicesHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dbAiServicesIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+.dbDarkTheme .dbAiServicesIcon {
+  background-color: #818cf8;
+}
+
+.dbAiServicesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .dbAiServicesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbAiServiceItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.dbLightTheme .dbAiServiceItem {
+  background-color: #f9fafb;
+}
+
+.dbDarkTheme .dbAiServiceItem {
+  background-color: #252e45;
+}
+
+.dbLightTheme .dbAiServiceItem:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+}
+
+.dbDarkTheme .dbAiServiceItem:hover {
+  background-color: #2a3349;
+  transform: translateY(-2px);
+}
+
+.dbAiServiceIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.dbAiServiceContent {
+  flex: 1;
+}
+
+.dbAiServiceContent h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dbAiServiceContent p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.dbLightTheme .dbAiServiceContent p {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbAiServiceContent p {
+  color: #9ca3af;
+}
+
+.dbAiServiceArrow {
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.dbAiServiceItem:hover .dbAiServiceArrow {
+  transform: translateX(4px);
+}
+
+/* AI Consultant Styles */
+.dbAiConsultantContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbAiConsultantContainer {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbAiConsultantContainer {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbAiConsultantHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid;
+}
+
+.dbLightTheme .dbAiConsultantHeader {
+  border-color: #eaedf0;
+}
+
+.dbDarkTheme .dbAiConsultantHeader {
+  border-color: #323752;
+}
+
+.dbAiConsultantHeaderIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+.dbDarkTheme .dbAiConsultantHeaderIcon {
+  background-color: #818cf8;
+}
+
+.dbAiConsultantHeader h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dbAiConsultantHeader p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dbLightTheme .dbAiConsultantHeader p {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbAiConsultantHeader p {
+  color: #9ca3af;
+}
+
+.dbAiConsultantSuggestions {
+  padding: 20px 24px;
+  border-bottom: 1px solid;
+}
+
+.dbLightTheme .dbAiConsultantSuggestions {
+  border-color: #eaedf0;
+  background-color: #f9fafb;
+}
+
+.dbDarkTheme .dbAiConsultantSuggestions {
+  border-color: #323752;
+  background-color: #252e45;
+}
+
+.dbAiConsultantSuggestions h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dbAiSuggestionsIcon {
+  color: #f59e0b;
+}
+
+.dbAiSuggestedTopics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .dbAiSuggestedTopics {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbAiSuggestedTopic {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbAiSuggestedTopic {
+  background-color: #fff;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbAiSuggestedTopic {
+  background-color: #1e2538;
+  color: #e4e6eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dbLightTheme .dbAiSuggestedTopic:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.dbDarkTheme .dbAiSuggestedTopic:hover {
+  background-color: #2a3349;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.dbAiSuggestedTopic span {
+  flex: 1;
+}
+
+.dbAiTopicArrow {
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.dbAiSuggestedTopic:hover .dbAiTopicArrow {
+  transform: translateX(4px);
+}
+
+.dbAiConsultantMessages {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dbAiMessage {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+}
+
+.dbAiMessageAssistant {
+  align-self: flex-start;
+}
+
+.dbAiMessageUser {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.dbAiMessageAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dbLightTheme .dbAiMessageAssistant .dbAiMessageAvatar {
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+.dbDarkTheme .dbAiMessageAssistant .dbAiMessageAvatar {
+  background-color: #818cf8;
+  color: #1a1d2d;
+}
+
+.dbLightTheme .dbAiMessageUser .dbAiMessageAvatar {
+  background-color: #f0f2f5;
+  color: #4f46e5;
+}
+
+.dbDarkTheme .dbAiMessageUser .dbAiMessageAvatar {
+  background-color: #2a3349;
+  color: #818cf8;
+}
+
+.dbAiMessageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dbAiMessageText {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dbLightTheme .dbAiMessageAssistant .dbAiMessageText {
+  background-color: #f3f4f6;
+  color: #333;
+}
+
+.dbDarkTheme .dbAiMessageAssistant .dbAiMessageText {
+  background-color: #252e45;
+  color: #e4e6eb;
+}
+
+.dbLightTheme .dbAiMessageUser .dbAiMessageText {
+  background-color: #4f46e5;
+  color: #fff;
+}
+
+.dbDarkTheme .dbAiMessageUser .dbAiMessageText {
+  background-color: #818cf8;
+  color: #1a1d2d;
+}
+
+.dbAiMessageText strong {
+  font-weight: 600;
+}
+
+.dbAiMessageTime {
+  font-size: 11px;
+  align-self: flex-end;
+}
+
+.dbLightTheme .dbAiMessageTime {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbAiMessageTime {
+  color: #9ca3af;
+}
+
+.dbAiTypingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.dbLightTheme .dbAiTypingIndicator {
+  background-color: #f3f4f6;
+}
+
+.dbDarkTheme .dbAiTypingIndicator {
+  background-color: #252e45;
+}
+
+.dbAiTypingIndicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: typing 1s infinite ease-in-out;
+}
+
+.dbLightTheme .dbAiTypingIndicator span {
+  background-color: #6b7280;
+}
+
+.dbDarkTheme .dbAiTypingIndicator span {
+  background-color: #9ca3af;
+}
+
+.dbAiTypingIndicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.dbAiTypingIndicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dbAiTypingIndicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.dbAiConsultantInputContainer {
+  padding: 16px 24px;
+  border-top: 1px solid;
+  display: flex;
+  gap: 12px;
+}
+
+.dbLightTheme .dbAiConsultantInputContainer {
+  border-color: #eaedf0;
+  background-color: #f9fafb;
+}
+
+.dbDarkTheme .dbAiConsultantInputContainer {
+  border-color: #323752;
+  background-color: #252e45;
+}
+
+.dbAiConsultantInput {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbAiConsultantInput {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  color: #333;
+}
+
+.dbDarkTheme .dbAiConsultantInput {
+  border-color: #323752;
+  background-color: #1e2538;
+  color: #e4e6eb;
+}
+
+.dbLightTheme .dbAiConsultantInput:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.dbDarkTheme .dbAiConsultantInput:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+}
+
+.dbAiConsultantSendButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #e2e8f0;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbAiConsultantSendButton {
+  background-color: #323752;
+  color: #9ca3af;
+}
+
+.dbAiSendActive {
+  background-color: #4f46e5 !important;
+  color: #fff !important;
+}
+
+.dbDarkTheme .dbAiSendActive {
+  background-color: #818cf8 !important;
+  color: #1a1d2d !important;
+}
+
+.dbAiConsultantSendButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.dbAiConsultantFooter {
+  padding: 12px 24px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px solid;
+}
+
+.dbLightTheme .dbAiConsultantFooter {
+  border-color: #eaedf0;
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbAiConsultantFooter {
+  border-color: #323752;
+  background-color: #252e45;
+  color: #9ca3af;
+}
+
+/* Weekly Basket Styles */
+.dbWeeklyBasketContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbWeeklyBasketContainer {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbWeeklyBasketContainer {
+  background-color: #1e2538;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dbWeeklyBasketHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid;
+}
+
+.dbLightTheme .dbWeeklyBasketHeader {
+  border-color: #eaedf0;
+}
+
+.dbDarkTheme .dbWeeklyBasketHeader {
+  border-color: #323752;
+}
+
+.dbWeeklyBasketHeaderIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #10b981;
+  color: #fff;
+}
+
+.dbWeeklyBasketHeader h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dbWeeklyBasketHeader p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dbLightTheme .dbWeeklyBasketHeader p {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbWeeklyBasketHeader p {
+  color: #9ca3af;
+}
+
+.dbBasketCarousel {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  gap: 16px;
+}
+
+.dbBasketNavButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketNavButton {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketNavButton {
+  background-color: #252e45;
+  color: #9ca3af;
+}
+
+.dbLightTheme .dbBasketNavButton:hover {
+  background-color: #e5e7eb;
+  color: #4f46e5;
+}
+
+.dbDarkTheme .dbBasketNavButton:hover {
+  background-color: #323752;
+  color: #818cf8;
+}
+
+.dbBasketCard {
+  flex: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketCard {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketCard {
+  background-color: #252e45;
+  border: 1px solid #323752;
+}
+
+.dbBasketCardHeader {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid;
+}
+
+.dbLightTheme .dbBasketCardHeader {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketCardHeader {
+  background-color: #2a3349;
+  border-color: #323752;
+}
+
+.dbBasketCardHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dbBasketDuration {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbBasketDuration {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketDuration {
+  color: #9ca3af;
+}
+
+.dbBasketCardContent {
+  padding: 20px;
+}
+
+.dbBasketStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dbBasketStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dbBasketStatLabel {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.dbLightTheme .dbBasketStatLabel {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketStatLabel {
+  color: #9ca3af;
+}
+
+.dbBasketStatValue {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dbBasketSavings {
+  color: #10b981;
+}
+
+.dbBasketPreview {
+  margin-bottom: 24px;
+}
+
+.dbBasketPreview h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dbBasketItemsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dbBasketPreviewItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid;
+}
+
+.dbLightTheme .dbBasketPreviewItem {
+  border-color: #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketPreviewItem {
+  border-color: #323752;
+}
+
+.dbBasketItemName {
+  font-size: 14px;
+}
+
+.dbBasketItemPrice {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dbBasketPreviewMore {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.dbLightTheme .dbBasketPreviewMore {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketPreviewMore {
+  color: #9ca3af;
+}
+
+.dbBasketCardActions {
+  display: flex;
+  justify-content: center;
+}
+
+.dbBasketDetailsButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketDetailsButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbDarkTheme .dbBasketDetailsButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbLightTheme .dbBasketDetailsButton:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+.dbDarkTheme .dbBasketDetailsButton:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+.dbBasketCarouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.dbBasketDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketDot {
+  background-color: #e2e8f0;
+}
+
+.dbDarkTheme .dbBasketDot {
+  background-color: #323752;
+}
+
+.dbBasketActiveDot {
+  width: 10px;
+  height: 10px;
+}
+
+.dbLightTheme .dbBasketActiveDot {
+  background-color: #10b981;
+}
+
+.dbDarkTheme .dbBasketActiveDot {
+  background-color: #10b981;
+}
+
+.dbBasketInfo {
+  padding: 0 24px 24px;
+}
+
+.dbBasketInfoHeader {
+  margin-bottom: 16px;
+}
+
+.dbBasketInfoHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dbBasketInfoSteps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .dbBasketInfoSteps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbBasketInfoStep {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.dbBasketInfoStepNumber {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.dbLightTheme .dbBasketInfoStepNumber {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbDarkTheme .dbBasketInfoStepNumber {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbBasketInfoStepContent h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dbBasketInfoStepContent p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.dbLightTheme .dbBasketInfoStepContent p {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketInfoStepContent p {
+  color: #9ca3af;
+}
+
+.dbBasketDetailsHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dbLightTheme .dbBasketDetailsHeader {
+  border-color: #eaedf0;
+}
+
+.dbDarkTheme .dbBasketDetailsHeader {
+  border-color: #323752;
+}
+
+.dbBasketBackButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+}
+
+.dbBasketDetailsHeader h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dbBasketDetailsSummary {
+  display: flex;
+  gap: 24px;
+}
+
+.dbBasketDetailsStat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.dbBasketDetailsFilters {
+  padding: 16px 24px;
+  border-bottom: 1px solid;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dbBasketDetailsFilters::-webkit-scrollbar {
+  display: none;
+}
+
+.dbLightTheme .dbBasketDetailsFilters {
+  border-color: #eaedf0;
+}
+
+.dbDarkTheme .dbBasketDetailsFilters {
+  border-color: #323752;
+}
+
+.dbBasketFiltersLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dbBasketFilterButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.dbBasketFilterButton {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dbLightTheme .dbBasketFilterButton {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketFilterButton {
+  background-color: #252e45;
+  color: #9ca3af;
+}
+
+.dbLightTheme .dbBasketActiveFilter {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbDarkTheme .dbBasketActiveFilter {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbBasketItemsGrid {
+  flex: 1;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.dbBasketDetailItem {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketDetailItem {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketDetailItem {
+  background-color: #252e45;
+  border: 1px solid #323752;
+}
+
+.dbLightTheme .dbBasketDetailItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbBasketDetailItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dbBasketItemImageContainer {
+  position: relative;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+}
+
+.dbDarkTheme .dbBasketItemImageContainer {
+  background-color: #2a3349;
+}
+
+.dbBasketItemImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.dbBasketItemEssentialBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background-color: #10b981;
+  color: white;
+}
+
+.dbBasketItemDetails {
+  padding: 12px;
+}
+
+.dbBasketItemTitle {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dbBasketItemStore {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.dbLightTheme .dbBasketItemStore {
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketItemStore {
+  color: #9ca3af;
+}
+
+.dbBasketItemStore span {
+  font-weight: 500;
+}
+
+.dbBasketItemPriceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dbBasketItemPrice {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dbBasketItemQuantity {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.dbLightTheme .dbBasketItemQuantity {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketItemQuantity {
+  background-color: #2a3349;
+  color: #9ca3af;
+}
+
+.dbBasketDetailsFooter {
+  padding: 16px 24px;
+  border-top: 1px solid;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dbLightTheme .dbBasketDetailsFooter {
+  border-color: #eaedf0;
+  background-color: #f9fafb;
+}
+
+.dbDarkTheme .dbBasketDetailsFooter {
+  border-color: #323752;
+  background-color: #252e45;
+}
+
+.dbBasketPrintButton {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbBasketPrintButton {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketPrintButton {
+  background-color: #2a3349;
+  color: #9ca3af;
+  border: 1px solid #323752;
+}
+
+.dbLightTheme .dbBasketPrintButton:hover {
+  background-color: #e5e7eb;
+}
+
+.dbDarkTheme .dbBasketPrintButton:hover {
+  background-color: #323752;
+}
+
+.dbBasketSaveButton {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+
+.dbLightTheme .dbBasketSaveButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbDarkTheme .dbBasketSaveButton {
+  background-color: #10b981;
+  color: white;
+}
+
+.dbLightTheme .dbBasketSaveButton:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+.dbDarkTheme .dbBasketSaveButton:hover {
+  background-color: #059669;
+  transform: translateY(-2px);
+}
+
+.dbBasketFooter {
+  padding: 12px 24px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px solid;
+}
+
+.dbLightTheme .dbBasketFooter {
+  border-color: #eaedf0;
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+.dbDarkTheme .dbBasketFooter {
+  border-color: #323752;
+  background-color: #252e45;
+  color: #9ca3af;
+}

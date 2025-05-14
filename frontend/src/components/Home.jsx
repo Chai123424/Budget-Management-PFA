@@ -202,7 +202,11 @@ const Home = ({ darkMode }) => {
           </div>
         </div>
       </div>
-      
+
+      <footer className={`site-footer ${darkMode ? 'dark-footer' : ''}`}>
+        <p className="copyright">© {new Date().getFullYear()} Student Finance Simplified. All rights reserved.</p>
+      </footer>
+
       {/* Decorative elements */}
       <div className="decorative-shapes">
         <div className="shape shape-1"></div>
