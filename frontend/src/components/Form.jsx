@@ -19,6 +19,34 @@ export default function Formulaire() {
     transport: ""
   });
   const [saveMessage, setSaveMessage] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const validateStep = () => {
+    const newErrors = {};
+
+    if (step === 1) {
+      if (!formData.lastName.trim()) newErrors.lastName = "Last name is required!";
+      if (!formData.firstName.trim()) newErrors.firstName = "First name is required!";
+      if (!formData.age.trim()) newErrors.age = "Age is required!";
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required!";
+      } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+        newErrors.email = "Email is invalid!";
+      }
+      if (!formData.university) newErrors.university = "University selection is required!";
+    } else if (step === 2) {
+      if (!formData.budget.trim()) newErrors.budget = "Budget is required!";
+      if (formData.hasTuition === "yes" && !formData.tuitionAmount.trim()) {
+        newErrors.tuitionAmount = "Tuition amount is required when you have tuition!";
+      }
+      if (!formData.rent.trim()) newErrors.rent = "Rent amount is required!";
+      if (!formData.food.trim()) newErrors.food = "Food amount is required!";
+      if (!formData.transport.trim()) newErrors.transport = "Transport amount is required!";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,10 +54,21 @@ export default function Formulaire() {
       ...prevState,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const nextStep = () => {
-    setStep(prevStep => prevStep + 1);
+    if (validateStep()) {
+      setStep(prevStep => prevStep + 1);
+    }
   };
 
   const prevStep = () => {
@@ -37,14 +76,16 @@ export default function Formulaire() {
   };
 
   const saveData = () => {
-    // Simulate saving data
-    localStorage.setItem("budgetFormData", JSON.stringify(formData));
-    setSaveMessage("Data saved successfully!");
-    
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      setSaveMessage("");
-    }, 3000);
+    if (validateStep()) {
+      // Simulate saving data
+      localStorage.setItem("budgetFormData", JSON.stringify(formData));
+      setSaveMessage("Data saved successfully!");
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setSaveMessage("");
+      }, 3000);
+    }
   };
 
   return (
@@ -86,7 +127,9 @@ export default function Formulaire() {
                   name="lastName" 
                   value={formData.lastName}
                   onChange={handleChange}
+                  className={errors.lastName ? "error" : ""}
                 />
+                {errors.lastName && <span className="error-message">{errors.lastName}</span>}
               </div>
               <div className="form-row right">
                 <label htmlFor="firstName">First Name</label>
@@ -96,7 +139,9 @@ export default function Formulaire() {
                   name="firstName" 
                   value={formData.firstName}
                   onChange={handleChange}
+                  className={errors.firstName ? "error" : ""}
                 />
+                {errors.firstName && <span className="error-message">{errors.firstName}</span>}
               </div>
             </div>
 
@@ -109,7 +154,9 @@ export default function Formulaire() {
                   name="age" 
                   value={formData.age}
                   onChange={handleChange}
+                  className={errors.age ? "error" : ""}
                 />
+                {errors.age && <span className="error-message">{errors.age}</span>}
               </div>
               <div className="form-row right">
                 <label htmlFor="email">Email</label>
@@ -119,7 +166,9 @@ export default function Formulaire() {
                   name="email" 
                   value={formData.email}
                   onChange={handleChange}
+                  className={errors.email ? "error" : ""}
                 />
+                {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
             </div>
 
@@ -130,11 +179,13 @@ export default function Formulaire() {
                 name="university"
                 value={formData.university}
                 onChange={handleChange}
+                className={errors.university ? "error" : ""}
               >
                 <option value="">--Select--</option>
                 <option value="public">Public</option>
                 <option value="private">Private</option>
               </select>
+              {errors.university && <span className="error-message">{errors.university}</span>}
             </div>
 
             <div className="form-buttons">
@@ -163,7 +214,9 @@ export default function Formulaire() {
                   name="budget" 
                   value={formData.budget}
                   onChange={handleChange}
+                  className={errors.budget ? "error" : ""}
                 />
+                {errors.budget && <span className="error-message">{errors.budget}</span>}
               </div>
 
               <div className="form-row">
@@ -203,7 +256,9 @@ export default function Formulaire() {
                     name="tuitionAmount" 
                     value={formData.tuitionAmount}
                     onChange={handleChange}
+                    className={errors.tuitionAmount ? "error" : ""}
                   />
+                  {errors.tuitionAmount && <span className="error-message">{errors.tuitionAmount}</span>}
                 </div>
               )}
 
@@ -218,7 +273,9 @@ export default function Formulaire() {
                     name="rent" 
                     value={formData.rent}
                     onChange={handleChange}
+                    className={errors.rent ? "error" : ""}
                   />
+                  {errors.rent && <span className="error-message">{errors.rent}</span>}
                 </div>
 
                 <div className="form-row">
@@ -229,7 +286,9 @@ export default function Formulaire() {
                     name="food" 
                     value={formData.food}
                     onChange={handleChange}
+                    className={errors.food ? "error" : ""}
                   />
+                  {errors.food && <span className="error-message">{errors.food}</span>}
                 </div>
 
                 <div className="form-row">
@@ -240,7 +299,9 @@ export default function Formulaire() {
                     name="transport" 
                     value={formData.transport}
                     onChange={handleChange}
+                    className={errors.transport ? "error" : ""}
                   />
+                  {errors.transport && <span className="error-message">{errors.transport}</span>}
                 </div>
               </fieldset>
             </fieldset>
