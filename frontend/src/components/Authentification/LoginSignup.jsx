@@ -11,7 +11,7 @@ import mobile_icon from '../../assets/icons/mobil.png';
 import sun_icon from '../../assets/icons/soleil.png';
 import moon_icon from '../../assets/icons/lune.png';
 
-const LoginSignup = () => {
+const LoginSignup = ({ setIsAuthenticated }) => {
   const [action, setAction] = useState("Sign Up");
   const [darkMode, setDarkMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -72,6 +72,15 @@ const LoginSignup = () => {
     return strength;
   };
 
+  const handleAuthentication = () => {
+    // Définir l'utilisateur comme authentifié
+    localStorage.setItem('isAuthenticated', 'true');
+    // Mettre à jour l'état dans le composant parent
+    setIsAuthenticated(true);
+    // Naviguer vers le dashboard
+    navigate('/dashboard');
+  };
+
   const handleSubmit = () => {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
@@ -80,13 +89,13 @@ const LoginSignup = () => {
       if (action === 'Sign Up') {
         const fakeUser = { email, password };
         localStorage.setItem('user', JSON.stringify(fakeUser));
-        navigate('/dashboard');
+        handleAuthentication();
       }
 
       if (action === 'Login') {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser && storedUser.email === email && storedUser.password === password) {
-          navigate('/dashboard');
+          handleAuthentication();
         } else {
           alert("Identifiants incorrects");
         }

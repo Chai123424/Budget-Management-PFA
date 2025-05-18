@@ -23,8 +23,10 @@ import {
   Bot,
   ChevronRight,
   Sparkles,
+  Search,
 } from "lucide-react"
 import "../css/Dashboard.css"
+import logo from "../assets/icons/money-management.png";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
@@ -32,6 +34,8 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
   const [activeTip, setActiveTip] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showSearchResults, setShowSearchResults] = useState(false)
 
   const tips = [
     "Track your coffee expenses - small savings add up!",
@@ -40,6 +44,16 @@ export default function Dashboard() {
     "Plan meals ahead to reduce food delivery expenses",
     "Consider second-hand textbooks to save on course materials",
   ]
+
+  // Faux résultats de recherche pour la démonstration
+  const searchResults = [
+   { id: 1, type: "expense", title: "Expense - Grocery", amount: "120DH", date: "May 15, 2025" },
+    { id: 2, type: "expense", title: "Expense - Restaurant", amount: "85DH", date: "May 12, 2025" },
+    { id: 3, type: "savings", title: "Savings - Vacation Goal", amount: "200DH", date: "May 10, 2025" },
+    { id: 4, type: "goal", title: "Goal - New Laptop", amount: "1500DH", date: "In progress" },
+  ].filter(item => 
+    searchQuery && item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768)
@@ -64,6 +78,15 @@ export default function Dashboard() {
     }
   }, [tips.length])
 
+  // Effet pour gérer l'affichage des résultats de recherche
+  useEffect(() => {
+    if (searchQuery) {
+      setShowSearchResults(true)
+    } else {
+      setShowSearchResults(false)
+    }
+  }, [searchQuery])
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
   }
@@ -78,6 +101,36 @@ export default function Dashboard() {
     if (isMobile) {
       setSidebarOpen(false)
     }
+    // Reset search when changing tabs
+    setSearchQuery("")
+    setShowSearchResults(false)
+  }
+
+  // Handle search input changes
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value)
+  }
+
+  // Handle search submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    // Logique de recherche ici
+    console.log("Recherche soumise:", searchQuery)
+  }
+
+  // Gérer le clic sur un résultat de recherche
+  const handleSearchResultClick = (result) => {
+    console.log("Résultat sélectionné:", result)
+    // Naviguer vers la page appropriée selon le type de résultat
+    if (result.type === "expense") {
+      setActiveTab("expenses")
+    } else if (result.type === "savings") {
+      setActiveTab("savings")
+    } else if (result.type === "goal") {
+      setActiveTab("goals")
+    }
+    // Fermer les résultats
+    setShowSearchResults(false)
   }
 
   // Apply dashboard theme class based on darkMode state
@@ -119,12 +172,12 @@ export default function Dashboard() {
           <div className="dbComingSoonIcon">
             <Sparkles size={48} />
           </div>
-          <p>Cette section est en cours de développement et sera bientôt disponible !</p>
+          <p>This section is under development and will be available soon!</p>
           <button 
             className="dbBackButton"
             onClick={() => handleTabChange("overview")}
           >
-            Retour à l'accueil
+            Back to Home
           </button>
         </div>
       </div>
@@ -135,8 +188,8 @@ export default function Dashboard() {
     return (
       <>
         <div className="dbWelcome">
-          <h2>Bonjour, Chai 👋</h2>
-          <p>Voici un aperçu de vos finances pour le mois de mai</p>
+          <h2>Hello, Chai 👋</h2>
+          <p>Here's your financial overview for May</p>
         </div>
 
         {/* Tab navigation */}
@@ -145,19 +198,19 @@ export default function Dashboard() {
             className={`dbTabButton ${activeTab === "overview" ? "dbActiveTab" : ""}`}
             onClick={() => handleTabChange("overview")}
           >
-            Vue d'ensemble
+            Overview
           </button>
           <button 
             className={`dbTabButton ${activeTab === "expenses" ? "dbActiveTab" : ""}`}
             onClick={() => handleTabChange("expenses")}
           >
-            Dépenses
+            Expenses
           </button>
           <button 
             className={`dbTabButton ${activeTab === "savings" ? "dbActiveTab" : ""}`}
             onClick={() => handleTabChange("savings")}
           >
-            Économies
+            Savings
           </button>
         </div>
 
@@ -166,7 +219,7 @@ export default function Dashboard() {
           {/* First stat card */}
           <div className="dbStatCard">
             <div className="dbStatHeader">
-              <div className="dbStatTitle">Dépensé ce mois</div>
+              <div className="dbStatTitle">Spent this month</div>
               <div className="dbStatIcon dbPurple">
                 <CreditCard size={20} />
               </div>
@@ -174,7 +227,7 @@ export default function Dashboard() {
             <div className="dbStatValue">1,250DH</div>
             <div className="dbStatTrend dbPositive">
               <ArrowUpRight size={16} />
-              <span>12% de moins que le mois dernier</span>
+              <span>12% less than last month</span>
             </div>
             <div className="dbStatChart">
               <div className="dbChartBars">
@@ -192,7 +245,7 @@ export default function Dashboard() {
           {/* Second stat card */}
           <div className="dbStatCard">
             <div className="dbStatHeader">
-              <div className="dbStatTitle">Économisé ce mois</div>
+              <div className="dbStatTitle">Saved this month</div>
               <div className="dbStatIcon dbBlue">
                 <Wallet size={20} />
               </div>
@@ -200,7 +253,7 @@ export default function Dashboard() {
             <div className="dbStatValue">450DH</div>
             <div className="dbStatTrend dbPositive">
               <ArrowUpRight size={16} />
-              <span>8% de plus que le mois dernier</span>
+              <span>8% more than last month</span>
             </div>
             <div className="dbStatChart">
               <div className="dbChartBars">
@@ -218,14 +271,14 @@ export default function Dashboard() {
           {/* Third stat card */}
           <div className="dbStatCard">
             <div className="dbStatHeader">
-              <div className="dbStatTitle">Budget restant</div>
+              <div className="dbStatTitle">Remaining budget</div>
               <div className="dbStatIcon dbGreen">
                 <DollarSign size={20} />
               </div>
             </div>
             <div className="dbStatValue">750DH</div>
             <div className="dbStatTrend dbNeutral">
-              <span>38% du budget mensuel</span>
+              <span>38% of monthly budget</span>
             </div>
             <div className="dbProgressContainer">
               <div className="dbProgressBar" style={{ width: "38%" }}></div>
@@ -243,7 +296,7 @@ export default function Dashboard() {
             <div className="dbAiServicesIcon">
               <Sparkles size={24} />
             </div>
-            <h3>Nouveaux services intelligents</h3>
+            <h3>New Smart Services</h3>
           </div>
           <div className="dbAiServicesGrid">
             <div 
@@ -254,8 +307,8 @@ export default function Dashboard() {
                 <Bot size={24} />
               </div>
               <div className="dbAiServiceContent">
-                <h4>Conseiller IA</h4>
-                <p>Obtenez des conseils financiers personnalisés basés sur vos habitudes de dépenses</p>
+                 <h4>AI Advisor</h4>
+                <p>Get personalized financial advice based on your spending habits</p>
               </div>
               <ChevronRight size={20} className="dbAiServiceArrow" />
             </div>
@@ -267,8 +320,8 @@ export default function Dashboard() {
                 <ShoppingBasket size={24} />
               </div>
               <div className="dbAiServiceContent">
-                <h4>Panier hebdomadaire</h4>
-                <p>Découvrez des paniers d'achats optimisés pour économiser sur vos courses</p>
+                 <h4>Weekly Basket</h4>
+                <p>Discover optimized shopping baskets to save on your groceries</p>
               </div>
               <ChevronRight size={20} className="dbAiServiceArrow" />
             </div>
@@ -312,6 +365,30 @@ export default function Dashboard() {
     )
   }
 
+  // Rendu des résultats de recherche
+  const renderSearchResults = () => {
+    if (!showSearchResults || searchResults.length === 0) return null;
+
+    return (
+      <div className="dbSearchResults">
+        <h4>Résultats de recherche</h4>
+        <ul>
+          {searchResults.map((result) => (
+            <li key={result.id} onClick={() => handleSearchResultClick(result)}>
+              <div className="dbSearchResultContent">
+                <div className="dbSearchResultTitle">{result.title}</div>
+                <div className="dbSearchResultDetails">
+                  <span className="dbSearchResultAmount">{result.amount}</span>
+                  <span className="dbSearchResultDate">{result.date}</span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   return (
     <div className={dashboardClass}>
       {/* Overlay for mobile */}
@@ -321,73 +398,73 @@ export default function Dashboard() {
       <aside className={`dbSidebar ${isMobile && sidebarOpen ? "dbOpen" : ""}`}>
         <div className="dbSidebarHeader">
           <div className="dbLogo">
-            <PieChart size={24} />
+            <img src={logo} alt="logo" className="logo"  />
             <span>Simplified!</span>
           </div>
         </div>
 
         <nav className="dbNav">
           <div className="dbNavSection">
-            <h3 className="dbNavTitle">Menu principal</h3>
+            <h3 className="dbNavTitle">Main Menu</h3>
             <ul>
               <li className={activeTab === "overview" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("overview")}>
                   <Home size={20} />
-                  <span>Vue d'ensemble</span>
+                  <span>Overview</span>
                 </button>
               </li>
               <li className={activeTab === "expenses" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("expenses")}>
                   <CreditCard size={20} />
-                  <span>Dépenses</span>
+                  <span>Expenses</span>
                 </button>
               </li>
               <li className={activeTab === "savings" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("savings")}>
                   <Wallet size={20} />
-                  <span>Économies</span>
+                  <span>Savings</span>
                 </button>
               </li>
               <li className={activeTab === "goals" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("goals")}>
                   <Target size={20} />
-                  <span>Objectifs</span>
+                  <span>Goals</span>
                 </button>
               </li>
             </ul>
           </div>
 
           <div className="dbNavSection">
-            <h3 className="dbNavTitle">Services intelligents</h3>
+            <h3 className="dbNavTitle">Smart Services</h3>
             <ul>
               <li className={activeTab === "ai-advisor" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("ai-advisor")}>
                   <Bot size={20} />
-                  <span>Conseiller IA</span>
+                  <span>AI Advisor</span>
                 </button>
               </li>
               <li className={activeTab === "weekly-basket" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("weekly-basket")}>
                   <ShoppingBasket size={20} />
-                  <span>Panier hebdomadaire</span>
+                  <span>Weekly Basket</span>
                 </button>
               </li>
             </ul>
           </div>
 
           <div className="dbNavSection">
-            <h3 className="dbNavTitle">Analytiques</h3>
+            <h3 className="dbNavTitle">Analytics</h3>
             <ul>
               <li className={activeTab === "reports" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("reports")}>
                   <BarChart2 size={20} />
-                  <span>Rapports</span>
+                  <span>Reports</span>
                 </button>
               </li>
               <li className={activeTab === "calendar" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("calendar")}>
                   <Calendar size={20} />
-                  <span>Calendrier</span>
+                  <span>Calendar</span>
                 </button>
               </li>
             </ul>
@@ -415,17 +492,35 @@ export default function Dashboard() {
             <button className="dbMenuButton" onClick={toggleSidebar}>
               <Menu size={24} />
             </button>
-            <h1>
-              {activeTab === "overview" && "Tableau de bord"}
-              {activeTab === "expenses" && "Dépenses"}
-              {activeTab === "savings" && "Économies"}
-              {activeTab === "goals" && "Objectifs"}
-              {activeTab === "ai-advisor" && "Conseiller IA"}
-              {activeTab === "weekly-basket" && "Panier hebdomadaire"}
-              {activeTab === "reports" && "Rapports"}
-              {activeTab === "calendar" && "Calendrier"}
-            </h1>
+            
           </div>
+          
+          {/* Nouvelle barre de recherche */}
+          <div className="dbSearchContainer">
+            <form onSubmit={handleSearchSubmit} className="dbSearchForm">
+              <div className="dbSearchInputWrapper">
+                <Search size={18} className="dbSearchIcon" />
+                <input
+                  type="text"
+                  placeholder="Rechercher des transactions, objectifs..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="dbSearchInput"
+                />
+                {searchQuery && (
+                  <button 
+                    type="button" 
+                    className="dbSearchClearButton"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              {renderSearchResults()}
+            </form>
+          </div>
+          
           <div className="dbHeaderRight">
             <button className="dbThemeToggle" onClick={toggleTheme}>
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -444,11 +539,11 @@ export default function Dashboard() {
                 </div>
               </button>
               <div className="dbDropdownContent">
-                <a href="#">Profil</a>
-                <a href="#">Paramètres</a>
+                <a href="#">Profile</a>
+                <a href="#">Settings</a>
                 <a href="#">
                   <LogOut size={16} />
-                  Déconnexion
+                  Logout
                 </a>
               </div>
             </div>

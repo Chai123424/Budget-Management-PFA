@@ -49,33 +49,40 @@ function App() {
   return (
     <BrowserRouter>
       <div className={`app ${darkMode ? 'dark-mode' : ''}`}>
-        <Navbar
-          darkMode={darkMode}
-          toggleTheme={toggleTheme}
-          isAuthenticated={isAuthenticated}
-          setIsAuthenticated={setIsAuthenticated}
-        />
-        
+        {/* Render Navbar only on public routes (home and how-it-works) */}
         <Routes>
-          {/* Routes publiques */}
-          <Route path="/" element={<Home darkMode={darkMode} />} />
+          {/* Routes publiques avec Navbar */}
           <Route 
-            path="/auth" 
-            element={<LoginSignup setIsAuthenticated={setIsAuthenticated} />} 
-          />
-          <Route path="/how-it-works" element={<HowItWorks darkMode={darkMode} />} />
-          
-          {/* Route protégée - Dashboard */}
-          <Route 
-            path="/dashboard" 
+            path="/" 
             element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
-                <Dashboard darkMode={darkMode} />
-              </ProtectedRoute>
+              <>
+                <Navbar
+                  darkMode={darkMode}
+                  toggleTheme={toggleTheme}
+                  isAuthenticated={isAuthenticated}
+                  setIsAuthenticated={setIsAuthenticated}
+                />
+                <Home darkMode={darkMode} />
+              </>
             } 
           />
           
-          {/* Redirection après login réussi */}
+          <Route 
+            path="/how-it-works" 
+            element={
+              <>
+                <Navbar
+                  darkMode={darkMode}
+                  toggleTheme={toggleTheme}
+                  isAuthenticated={isAuthenticated}
+                  setIsAuthenticated={setIsAuthenticated}
+                />
+                <HowItWorks darkMode={darkMode} />
+              </>
+            } 
+          />
+          
+          {/* Route d'authentification sans Navbar */}
           <Route 
             path="/auth" 
             element={
@@ -84,6 +91,61 @@ function App() {
                 <LoginSignup setIsAuthenticated={setIsAuthenticated} />
             } 
           />
+          
+          {/* Routes protégées sans Navbar */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Dashboard 
+                  darkMode={darkMode} 
+                  toggleTheme={toggleTheme}
+                  isAuthenticated={isAuthenticated}
+                  setIsAuthenticated={setIsAuthenticated}
+                />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Routes supplémentaires pour les fonctionnalités utilisateur */}
+          <Route 
+            path="/expenses" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <div className="content-page">
+                  <h1>Gestion des dépenses</h1>
+                  <p>Cette page est en cours de développement.</p>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/goals" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <div className="content-page">
+                  <h1>Objectifs financiers</h1>
+                  <p>Cette page est en cours de développement.</p>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/recommendations" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <div className="content-page">
+                  <h1>Recommandations</h1>
+                  <p>Cette page est en cours de développement.</p>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Route par défaut - redirection vers l'accueil */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>
