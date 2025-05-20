@@ -162,3 +162,11 @@ frontend/.eslintcache
 # System Files
 Thumbs.db
 Desktop.ini
+
+# React Native
+**/node_modules/
+**/android/.gradle/
+**/android/app/build/
+**/ios/Pods/
+**/ios/build/
+**/*.log
