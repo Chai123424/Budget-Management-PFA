@@ -28,6 +28,7 @@ import {
 import "../css/Dashboard.css"
 import logo from "../assets/icons/money-management.png";
 import Expenses from "./Expenses";
+import Savings from "./Savings";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
@@ -149,6 +150,11 @@ export default function Dashboard() {
           </div>
         )
       case "savings":
+        return (
+          <div className="content-page">
+            <Savings darkMode={darkMode} />
+          </div>
+        )
       case "goals":
       case "ai-advisor":
       case "weekly-basket":

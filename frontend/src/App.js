@@ -6,6 +6,7 @@ import Home from './components/Home';
 import HowItWorks from './components/HowItWorks';
 import Dashboard from './components/Dashboard';
 import Expenses from './components/Expenses';
+import Savings from './components/Savings';
 
 
 const ProtectedRoute = ({ children, isAuthenticated }) => {
@@ -117,7 +118,14 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          
+          <Route 
+            path="/savings" 
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <Savings darkMode={darkMode} />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/goals" 
             element={
