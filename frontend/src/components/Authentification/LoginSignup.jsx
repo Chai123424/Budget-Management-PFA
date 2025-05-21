@@ -77,7 +77,7 @@ const LoginSignup = ({ setIsAuthenticated }) => {
     localStorage.setItem('isAuthenticated', 'true');
     // Mettre à jour l'état dans le composant parent
     setIsAuthenticated(true);
-    // Naviguer vers le dashboard
+    // Naviguer vers le dashboard après une connexion réussie
     navigate('/dashboard');
   };
 
@@ -89,7 +89,10 @@ const LoginSignup = ({ setIsAuthenticated }) => {
       if (action === 'Sign Up') {
         const fakeUser = { email, password };
         localStorage.setItem('user', JSON.stringify(fakeUser));
-        handleAuthentication();
+        alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
+        setAction("Login");
+        setEmail('');
+        setPassword('');
       }
 
       if (action === 'Login') {

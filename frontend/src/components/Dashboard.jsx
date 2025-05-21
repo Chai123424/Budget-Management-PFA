@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import "../css/Dashboard.css"
 import logo from "../assets/icons/money-management.png";
+import Expenses from "./Expenses";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
@@ -142,6 +143,11 @@ export default function Dashboard() {
       case "overview":
         return renderOverview()
       case "expenses":
+        return (
+          <div className="content-page">
+            <Expenses darkMode={darkMode} />
+          </div>
+        )
       case "savings":
       case "goals":
       case "ai-advisor":

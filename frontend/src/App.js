@@ -5,6 +5,7 @@ import LoginSignup from './components/Authentification/LoginSignup';
 import Home from './components/Home';
 import HowItWorks from './components/HowItWorks';
 import Dashboard from './components/Dashboard';
+import Expenses from './components/Expenses';
 
 
 const ProtectedRoute = ({ children, isAuthenticated }) => {
@@ -112,10 +113,7 @@ function App() {
             path="/expenses" 
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
-                <div className="content-page">
-                  <h1>Gestion des dépenses</h1>
-                  <p>Cette page est en cours de développement.</p>
-                </div>
+                <Expenses darkMode={darkMode} />
               </ProtectedRoute>
             } 
           />
