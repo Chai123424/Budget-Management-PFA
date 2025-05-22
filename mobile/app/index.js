@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import LoadingScreen from './screens/LoadingPage/loadingScreen'; 
-import MainScreen from './screens/LoginScreen/loginScreen'; 
+import { Redirect } from "expo-router"
+import { useEffect, useState } from "react"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import LoadingScreen from "./loadingScreen"
 
-const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+export default function Index() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [userToken, setUserToken] = useState(null)
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); 
-  }, []);
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem("token")
+      setUserToken(token)
+      setTimeout(() => setIsLoading(false), 2000) // petit délai pour loading screen
+    }
+    checkToken()
+  }, [])
 
-  return isLoading ? <LoadingScreen /> : <MainScreen />;
-};
-
-export default App;
+  if (isLoading) return <LoadingScreen />
+  return <Redirect href={userToken ? "/dashboard" : "./LoginScreen/loginScreen"} />
+}

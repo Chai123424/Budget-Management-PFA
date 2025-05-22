@@ -13,8 +13,14 @@ import {
   Image,
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import axios from "axios"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-const LoginSignup = () => {
+// API URL - change this to your Flask server address
+const API_URL = "http://10.0.2.2:5000/api" // For Android emulator
+// const API_URL = 'http://localhost:5000/api'; // For iOS simulator
+
+const LoginSignup = ({ navigation }) => {
   const [action, setAction] = useState("Sign Up")
   const [darkMode, setDarkMode] = useState(false)
   const [email, setEmail] = useState("")
@@ -23,6 +29,7 @@ const LoginSignup = () => {
   const [emailError, setEmailError] = useState("")
   const [passwordError, setPasswordError] = useState("")
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const deviceTheme = useColorScheme()
 
   // Purple theme color
@@ -118,31 +125,84 @@ const LoginSignup = () => {
   }
 
   // Form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const isEmailValid = validateEmail(email)
     const isPasswordValid = validatePassword(password)
 
     if (isEmailValid && isPasswordValid) {
-      // All valid, proceed with login or signup
-      console.log("Form is valid, proceeding with", action)
-      // Add your authentication logic here
-      Alert.alert("Success", `${action} successful!`)
-    } else {
-      console.log("Form has errors, please correct them")
+      setIsLoading(true)
+      try {
+        if (action === "Login") {
+          // Login request to Flask backend
+          const response = await axios.post(`${API_URL}/login`, {
+            email,
+            password,
+          })
+
+          // Store token and user data
+          await AsyncStorage.setItem("token", response.data.token)
+          await AsyncStorage.setItem("user", JSON.stringify(response.data.user))
+
+          Alert.alert("Success", "Login successful!")
+
+          // Navigate to Dashboard or main app screen
+          if (navigation) {
+            navigation.navigate("Dashboard")
+          }
+        } else {
+          // Sign Up request to Flask backend
+          if (!name) {
+            Alert.alert("Error", "Name is required")
+            setIsLoading(false)
+            return
+          }
+
+          const response = await axios.post(`${API_URL}/register`, {
+            name,
+            email,
+            password,
+          })
+
+          Alert.alert("Success", "Account created successfully! Please login.")
+          setAction("Login")
+        }
+      } catch (error) {
+        console.error("Auth error:", error)
+        let errorMessage = "Authentication failed"
+
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          errorMessage = error.response.data.message || errorMessage
+        } else if (error.request) {
+          // The request was made but no response was received
+          errorMessage = "No response from server. Please check your connection."
+        }
+
+        Alert.alert("Error", errorMessage)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
-  const handlePasswordReset = () => {
-    // Validate email before sending reset request
+  const handlePasswordReset = async () => {
     if (validateEmail(email)) {
-      // Add logic to send password reset email
-      console.log("Password reset request sent to:", email)
-      Alert.alert("Password Reset", `If an account is associated with ${email}, a reset email will be sent.`)
-      // Return to login interface
-      setForgotPasswordMode(false)
-      setAction("Login")
-    } else {
-      console.log("Please enter a valid email address")
+      setIsLoading(true)
+      try {
+        // Password reset request to Flask backend
+        await axios.post(`${API_URL}/forgot-password`, { email })
+
+        Alert.alert("Password Reset", `If an account is associated with ${email}, a reset email will be sent.`)
+        setForgotPasswordMode(false)
+        setAction("Login")
+      } catch (error) {
+        console.error("Password reset error:", error)
+        // We don't show specific errors for password reset to prevent email enumeration
+        Alert.alert("Password Reset", `If an account is associated with ${email}, a reset email will be sent.`)
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -212,16 +272,18 @@ const LoginSignup = () => {
                 onBlur={() => validateEmail(email)}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
             {emailError ? <Text style={styles.errorMessage}>{emailError}</Text> : null}
 
             <View style={styles.resetButtons}>
               <TouchableOpacity
-                style={[styles.resetButton, { backgroundColor: theme.primary }]}
+                style={[styles.resetButton, { backgroundColor: theme.primary }, isLoading && styles.disabledButton]}
                 onPress={handlePasswordReset}
+                disabled={isLoading}
               >
-                <Text style={styles.resetButtonText}>Send Reset Link</Text>
+                <Text style={styles.resetButtonText}>{isLoading ? "Sending..." : "Send Reset Link"}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.cancelButton, { backgroundColor: theme.secondary }]}
@@ -229,6 +291,7 @@ const LoginSignup = () => {
                   setForgotPasswordMode(false)
                   setEmailError("")
                 }}
+                disabled={isLoading}
               >
                 <Text style={[styles.cancelButtonText, { color: theme.text }]}>Cancel</Text>
               </TouchableOpacity>
@@ -246,6 +309,7 @@ const LoginSignup = () => {
                   placeholderTextColor={darkMode ? "#888888" : "#AAAAAA"}
                   value={name}
                   onChangeText={setName}
+                  editable={!isLoading}
                 />
               </View>
             )}
@@ -261,6 +325,7 @@ const LoginSignup = () => {
                 onBlur={() => validateEmail(email)}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isLoading}
               />
             </View>
             {emailError ? <Text style={styles.errorMessage}>{emailError}</Text> : null}
@@ -275,6 +340,7 @@ const LoginSignup = () => {
                 onChangeText={setPassword}
                 onBlur={() => validatePassword(password)}
                 secureTextEntry
+                editable={!isLoading}
               />
             </View>
             {passwordError ? <Text style={styles.errorMessage}>{passwordError}</Text> : null}
@@ -304,7 +370,11 @@ const LoginSignup = () => {
 
       {/* "Lost Password" text appears only in Login mode and not in recovery mode */}
       {action === "Login" && !forgotPasswordMode && (
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => setForgotPasswordMode(true)}>
+        <TouchableOpacity
+          style={styles.forgotPassword}
+          onPress={() => setForgotPasswordMode(true)}
+          disabled={isLoading}
+        >
           <Text style={[styles.forgotPasswordText, { color: theme.text }]}>
             Lost Password? <Text style={{ color: theme.primary }}>click here!</Text>
           </Text>
@@ -318,30 +388,34 @@ const LoginSignup = () => {
             style={[
               styles.submitButton,
               action === "Sign Up" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
+              isLoading && styles.disabledButton,
             ]}
             onPress={() => {
               setAction("Sign Up")
               if (action === "Sign Up") handleSubmit()
             }}
+            disabled={isLoading}
           >
             <Text
               style={[styles.submitButtonText, action === "Sign Up" ? { color: "#FFFFFF" } : { color: theme.text }]}
             >
-              Sign up
+              {isLoading && action === "Sign Up" ? "Processing..." : "Sign up"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.submitButton,
               action === "Login" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
+              isLoading && styles.disabledButton,
             ]}
             onPress={() => {
               setAction("Login")
               if (action === "Login") handleSubmit()
             }}
+            disabled={isLoading}
           >
             <Text style={[styles.submitButtonText, action === "Login" ? { color: "#FFFFFF" } : { color: theme.text }]}>
-              Login
+              {isLoading && action === "Login" ? "Processing..." : "Login"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -493,6 +567,9 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 })
 
