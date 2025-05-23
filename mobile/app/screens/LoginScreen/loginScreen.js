@@ -385,39 +385,46 @@ const LoginSignup = ({ navigation }) => {
       {!forgotPasswordMode && (
         <View style={styles.submitContainer}>
           <TouchableOpacity
-            style={[
-              styles.submitButton,
-              action === "Sign Up" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
-              isLoading && styles.disabledButton,
-            ]}
-            onPress={() => {
-              setAction("Sign Up")
-              if (action === "Sign Up") handleSubmit()
-            }}
-            disabled={isLoading}
-          >
-            <Text
-              style={[styles.submitButtonText, action === "Sign Up" ? { color: "#FFFFFF" } : { color: theme.text }]}
-            >
-              {isLoading && action === "Sign Up" ? "Processing..." : "Sign up"}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              action === "Login" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
-              isLoading && styles.disabledButton,
-            ]}
-            onPress={() => {
-              setAction("Login")
-              if (action === "Login") handleSubmit()
-            }}
-            disabled={isLoading}
-          >
-            <Text style={[styles.submitButtonText, action === "Login" ? { color: "#FFFFFF" } : { color: theme.text }]}>
-              {isLoading && action === "Login" ? "Processing..." : "Login"}
-            </Text>
-          </TouchableOpacity>
+  style={[
+    styles.submitButton,
+    action === "Sign Up" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
+    isLoading && styles.disabledButton,
+  ]}
+  onPress={() => {
+    if (action !== "Sign Up") {
+      setAction("Sign Up")
+    } else {
+      handleSubmit()
+    }
+  }}
+  disabled={isLoading}
+>
+  <Text
+    style={[styles.submitButtonText, action === "Sign Up" ? { color: "#FFFFFF" } : { color: theme.text }]}
+  >
+    {isLoading && action === "Sign Up" ? "Processing..." : "Sign up"}
+  </Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+  style={[
+    styles.submitButton,
+    action === "Login" ? { backgroundColor: theme.primary } : { backgroundColor: theme.secondary },
+    isLoading && styles.disabledButton,
+  ]}
+  onPress={() => {
+    if (action !== "Login") {
+      setAction("Login")
+    } else {
+      handleSubmit()
+    }
+  }}
+  disabled={isLoading}
+>
+  <Text style={[styles.submitButtonText, action === "Login" ? { color: "#FFFFFF" } : { color: theme.text }]}>
+    {isLoading && action === "Login" ? "Processing..." : "Login"}
+  </Text>
+</TouchableOpacity>
         </View>
       )}
     </ScrollView>
