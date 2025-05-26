@@ -29,6 +29,7 @@ import "../css/Dashboard.css"
 import logo from "../assets/icons/money-management.png";
 import Expenses from "./Expenses";
 import Savings from "./Savings";
+import GoalsPage  from "./Goals";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
@@ -52,7 +53,7 @@ export default function Dashboard() {
    { id: 1, type: "expense", title: "Expense - Grocery", amount: "120DH", date: "May 15, 2025" },
     { id: 2, type: "expense", title: "Expense - Restaurant", amount: "85DH", date: "May 12, 2025" },
     { id: 3, type: "savings", title: "Savings - Vacation Goal", amount: "200DH", date: "May 10, 2025" },
-    { id: 4, type: "goal", title: "Goal - New Laptop", amount: "1500DH", date: "In progress" },
+    { id: 4, type: "goals", title: "Goal - New Laptop", amount: "1500DH", date: "In progress" },
   ].filter(item => 
     searchQuery && item.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -128,7 +129,7 @@ export default function Dashboard() {
       setActiveTab("expenses")
     } else if (result.type === "savings") {
       setActiveTab("savings")
-    } else if (result.type === "goal") {
+    } else if (result.type === "goals") {
       setActiveTab("goals")
     }
     // Fermer les résultats
@@ -156,6 +157,11 @@ export default function Dashboard() {
           </div>
         )
       case "goals":
+        return (
+          <div className="content-page">
+            <GoalsPage darkMode={darkMode} />
+          </div>
+        )
       case "ai-advisor":
       case "weekly-basket":
       case "reports":
