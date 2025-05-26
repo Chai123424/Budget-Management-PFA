@@ -117,7 +117,7 @@ export default function ExpensesPage() {
           <div className="summary-content">
             <div>
               <h3>Total des dépenses</h3>
-              <p className="total-amount">{totalExpenses.toFixed(2)} €</p>
+              <p className="total-amount">{totalExpenses.toFixed(2)} DH</p>
             </div>
             <div className="filters">
               <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -161,7 +161,7 @@ export default function ExpensesPage() {
               </div>
 
               <div className="expense-actions">
-                <span className="expense-amount">{expense.amount.toFixed(2)} €</span>
+                <span className="expense-amount">{expense.amount.toFixed(2)} DH</span>
                 <button className="delete-button" onClick={() => handleDeleteExpense(expense.id)}>
                   <Trash2 className="button-icon" />
                   <span className="sr-only">Supprimer</span>
@@ -190,7 +190,7 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="amount">Montant (€)</label>
+                <label htmlFor="amount">Montant (DH)</label>
                 <input
                   id="amount"
                   type="number"

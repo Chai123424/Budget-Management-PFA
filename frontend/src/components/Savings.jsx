@@ -394,7 +394,7 @@ const Savings = ({ darkMode = true }) => {
       <div className="savings-summary">
         <div className="summary-card total-card">
           <h3>Solde Total</h3>
-          <p className="amount">{totalBalance.toFixed(2)} €</p>
+          <p className="amount">{totalBalance.toFixed(2)} DH</p>
           <div className="sparkline">
             <div className="sparkline-bar" style={{ height: "60%" }}></div>
             <div className="sparkline-bar" style={{ height: "40%" }}></div>
@@ -422,7 +422,7 @@ const Savings = ({ darkMode = true }) => {
             <>
               <p className="last-transaction">
                 {filteredTransactions[0].type === "deposit" ? "+" : "-"}
-                {filteredTransactions[0].amount.toFixed(2)} €
+                {filteredTransactions[0].amount.toFixed(2)} DH
               </p>
               <p className="transaction-date">
                 <Clock size={14} />
@@ -463,7 +463,7 @@ const Savings = ({ darkMode = true }) => {
                   )}
                 </div>
                 <div className="account-balance">
-                  <p className="balance-amount">{account.balance.toFixed(2)} €</p>
+                  <p className="balance-amount">{account.balance.toFixed(2)} DH</p>
                   <div className="account-actions">
                     <button className="transaction-btn" onClick={() => openAddTransactionModal(account)}>
                       <Plus size={16} />
@@ -527,7 +527,7 @@ const Savings = ({ darkMode = true }) => {
                   </div>
                   <div className={`transaction-amount ${transaction.type === "deposit" ? "deposit" : "withdrawal"}`}>
                     {transaction.type === "deposit" ? "+" : "-"}
-                    {transaction.amount.toFixed(2)} €
+                    {transaction.amount.toFixed(2)} DH
                   </div>
                 </div>
               )
