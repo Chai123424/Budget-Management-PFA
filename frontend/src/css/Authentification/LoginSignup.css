@@ -210,43 +210,76 @@
   }
   
   /* Section des avantages */
+ /* Enhanced Benefits Section */
+.benefits {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.benefit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.3s ease;
+  padding: 12px 8px;
+  border-radius: 10px;
+  width: 30%;
+}
+
+.benefit:hover {
+  transform: translateY(-5px);
+  background-color: rgba(123, 104, 238, 0.05);
+}
+
+.benefit img {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease;
+}
+
+.benefit:hover img {
+  transform: scale(1.1);
+}
+
+.benefit span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-top: 5px;
+}
+
+/* Dark theme adjustments */
+.dark-theme .benefits {
+  border-top-color: #3d3d3d;
+}
+
+.dark-theme .benefit span {
+  color: #b0b0b0;
+}
+
+.dark-theme .benefit:hover {
+  background-color: rgba(123, 104, 238, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
   .benefits {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid #f0f0f0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
   }
   
   .benefit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    width: 45%;
+    padding: 15px;
   }
-  
-  .benefit-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(123, 104, 238, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-  }
-  
-  .benefit-icon img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-  }
-  
-  .benefit span {
-    font-size: 12px;
-    color: #666;
-    max-width: 80px;
-  }
+}
   /* Theme toggle button styles */
 .theme-toggle {
   position: absolute;
@@ -445,23 +478,7 @@ body.dark-mode {
       border-radius: 12px;
     }
     
-    .benefits {
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .benefit {
-      flex-direction: row;
-      gap: 10px;
-      width: 100%;
-      justify-content: flex-start;
-    }
-    
-    .benefit span {
-      max-width: none;
-      text-align: left;
-    }
+  
     
     .submitcontainer {
       flex-direction: column;
