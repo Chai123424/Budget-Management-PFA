@@ -6,70 +6,87 @@ import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from flask_mysqldb import MySQL  # Notez la casse
+
 app = Flask(__name__)
-CORS(app)
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'budget_app'
 
-# Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-for-development')
+mysql = MySQL(app)
 
-# In-memory user storage (for testing without SQLAlchemy)
-users = []
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:19006", "http://10.0.2.2:*"],
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
-# Routes
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
+    cur = None
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data received"}), 400
 
-    # Check if email already exists
-    if any(user['email'] == data['email'] for user in users):
-        return jsonify({'message': 'Email already registered!'}), 409
+        cur = mysql.connection.cursor()
+        
+        # Vérification email existant
+        cur.execute("SELECT email FROM users WHERE email = %s", (data['email'],))
+        if cur.fetchone():
+            return jsonify({"error": "Email already exists"}), 409
 
-    # Hash the password
-    hashed_password = generate_password_hash(data['password'], method='sha256')
-    
-    # Create new user
-    new_user = {
-        'public_id': str(uuid.uuid4()),
-        'name': data['name'],
-        'email': data['email'],
-        'password': hashed_password,
-        'created_at': datetime.datetime.utcnow()
-    }
-    
-    users.append(new_user)
-    
-    return jsonify({'message': 'User registered successfully!'}), 201
+        # Insertion
+        cur.execute(
+            "INSERT INTO users (public_id, name, email, password) VALUES (%s, %s, %s, %s)",
+            (str(uuid.uuid4()), data['name'], data['email'], generate_password_hash(data['password']))
+        )
+        mysql.connection.commit()
+        return jsonify({"success": True}), 201
 
+    except Exception as e:
+        if mysql.connection:
+            mysql.connection.rollback()
+        app.logger.error("Error in register: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cur:
+            cur.close()
+            
+                
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'message': 'Could not verify!'}), 401
+    if not data or not data['email'] or not data['password']:
+        return jsonify({'message': 'Veuillez fournir un email et un mot de passe !'}), 400
     
-    user = next((user for user in users if user['email'] == data['email']), None)
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users WHERE email = %s", (data['email'],))
+    user = cur.fetchone()
+    cur.close()
     
-    if not user:
-        return jsonify({'message': 'Invalid credentials!'}), 401
+    if not user or not check_password_hash(user['password'], data['password']):
+        return jsonify({'message': 'Identifiants invalides !'}), 401
     
-    if check_password_hash(user['password'], data['password']):
-        # Generate JWT token
-        token = jwt.encode({
-            'public_id': user['public_id'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
-        }, app.config['SECRET_KEY'], algorithm="HS256")
-        
-        return jsonify({
-            'token': token,
-            'user': {
-                'id': user['public_id'],
-                'name': user['name'],
-                'email': user['email']
-            }
-        }), 200
+    token = jwt.encode({
+        'public_id': user['public_id'],
+        'exp': datetime.utcnow() + timedelta(days=30)
+    }, app.config['SECRET_KEY'], algorithm="HS256")
     
-    return jsonify({'message': 'Invalid credentials!'}), 401
-
+    return jsonify({
+        'token': token,
+        'user': {
+            'id': user['public_id'],
+            'name': user['name'],
+            'email': user['email']
+        }
+    }), 200
+    
+    
 @app.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.get_json()

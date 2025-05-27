@@ -126,65 +126,39 @@ const LoginSignup = ({ navigation }) => {
 
   // Form submission
   const handleSubmit = async () => {
-    const isEmailValid = validateEmail(email)
-    const isPasswordValid = validatePassword(password)
+  console.log("Attempting:", action, { email, password }); // Debug
+  
+  try {
+    const url = `${API_URL}/${action === "Login" ? "login" : "register"}`;
+    const payload = action === "Login" 
+      ? { email, password }
+      : { name, email, password };
 
-    if (isEmailValid && isPasswordValid) {
-      setIsLoading(true)
-      try {
-        if (action === "Login") {
-          // Login request to Flask backend
-          const response = await axios.post(`${API_URL}/login`, {
-            email,
-            password,
-          })
+    console.log("Sending to:", url, payload); // Debug
 
-          // Store token and user data
-          await AsyncStorage.setItem("token", response.data.token)
-          await AsyncStorage.setItem("user", JSON.stringify(response.data.user))
+    const response = await axios.post(url, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      timeout: 10000
+    });
 
-          Alert.alert("Success", "Login successful!")
+    console.log("Response:", response.data); // Debug
 
-          // Navigate to Dashboard or main app screen
-          if (navigation) {
-            navigation.navigate("Dashboard")
-          }
-        } else {
-          // Sign Up request to Flask backend
-          if (!name) {
-            Alert.alert("Error", "Name is required")
-            setIsLoading(false)
-            return
-          }
-
-          const response = await axios.post(`${API_URL}/register`, {
-            name,
-            email,
-            password,
-          })
-
-          Alert.alert("Success", "Account created successfully! Please login.")
-          setAction("Login")
-        }
-      } catch (error) {
-        console.error("Auth error:", error)
-        let errorMessage = "Authentication failed"
-
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          errorMessage = error.response.data.message || errorMessage
-        } else if (error.request) {
-          // The request was made but no response was received
-          errorMessage = "No response from server. Please check your connection."
-        }
-
-        Alert.alert("Error", errorMessage)
-      } finally {
-        setIsLoading(false)
-      }
+    if (action === "Login") {
+      await AsyncStorage.setItem("token", response.data.token);
+      navigation.navigate("Dashboard");
+    } else {
+      Alert.alert("Success", "Account created!");
+      setAction("Login");
     }
+  } catch (error) {
+    console.error("API Error:", error.response?.data || error.message);
+    Alert.alert("Error", error.response?.data?.message || "Request failed");
   }
+  };
+
 
   const handlePasswordReset = async () => {
     if (validateEmail(email)) {
