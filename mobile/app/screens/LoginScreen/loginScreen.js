@@ -15,12 +15,17 @@ import {
 import { Ionicons } from "@expo/vector-icons"
 import axios from "axios"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useRouter } from 'expo-router';
+
 
 // API URL - change this to your Flask server address
 const API_URL = "http://10.0.2.2:5000/api" // For Android emulator
 // const API_URL = 'http://localhost:5000/api'; // For iOS simulator
 
-const LoginSignup = ({ navigation }) => {
+const LoginSignup = () => {
+  const router = useRouter()
+
+  
   const [action, setAction] = useState("Sign Up")
   const [darkMode, setDarkMode] = useState(false)
   const [email, setEmail] = useState("")
@@ -126,39 +131,58 @@ const LoginSignup = ({ navigation }) => {
 
   // Form submission
   const handleSubmit = async () => {
-  console.log("Attempting:", action, { email, password }); // Debug
-  
+  // Validation côté client d'abord
+  if (!validateEmail(email)) return;
+  if (action === "Sign Up" && !name) {
+    Alert.alert("Error", "Name is required");
+    return;
+  }
+  if (!validatePassword(password)) return;
+
+  setIsLoading(true);
+
   try {
-    const url = `${API_URL}/${action === "Login" ? "login" : "register"}`;
+    const endpoint = action === "Login" ? "login" : "register";
     const payload = action === "Login" 
       ? { email, password }
       : { name, email, password };
 
-    console.log("Sending to:", url, payload); // Debug
-
-    const response = await axios.post(url, payload, {
+    const response = await axios.post(`${API_URL}/${endpoint}`, payload, {
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       },
-      timeout: 10000
+      timeout: 10000,
     });
 
-    console.log("Response:", response.data); // Debug
+    console.log("API Response:", response.data);
 
     if (action === "Login") {
-      await AsyncStorage.setItem("token", response.data.token);
-      navigation.navigate("Dashboard");
+      // Stockage du token et redirection
+      await AsyncStorage.setItem("authToken", response.data.token);
+      await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
+      router.push("../Dashboard/Dashboard")
     } else {
-      Alert.alert("Success", "Account created!");
-      setAction("Login");
+      // Feedback après inscription
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => setAction("Login") }
+      ]);
+      // Réinitialisation du formulaire
+      setName("");
+      setEmail("");
+      setPassword("");
     }
   } catch (error) {
-    console.error("API Error:", error.response?.data || error.message);
-    Alert.alert("Error", error.response?.data?.message || "Request failed");
+    const errorMessage = error.response?.data?.error || 
+                        error.response?.data?.message || 
+                        error.message || 
+                        "An error occurred";
+    
+    console.error("API Error:", errorMessage);
+    Alert.alert("Error", errorMessage);
+  } finally {
+    setIsLoading(false);
   }
-  };
-
+};
 
   const handlePasswordReset = async () => {
     if (validateEmail(email)) {
