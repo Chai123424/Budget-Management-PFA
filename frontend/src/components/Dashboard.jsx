@@ -520,7 +520,7 @@ export default function Dashboard() {
                 <Search size={18} className="dbSearchIcon" />
                 <input
                   type="text"
-                  placeholder="Rechercher des transactions, objectifs..."
+                  placeholder=""
                   value={searchQuery}
                   onChange={handleSearchChange}
                   className="dbSearchInput"

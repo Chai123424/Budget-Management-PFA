@@ -108,7 +108,7 @@
 .hero-container {
   position: relative;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
   z-index: 10;
@@ -123,9 +123,7 @@
 
 /* Left column - Main content */
 .main-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  justify-content: space-between;
 }
 
 .student-badge {
@@ -142,6 +140,8 @@
 }
 
 .headline {
+  margin-top: 10px;
+  margin-bottom: 5px;
   font-size: 3.5rem;
   font-weight: 800;
   line-height: 1.1;
@@ -176,6 +176,7 @@
 }
 
 .tagline {
+  margin-bottom: 20px;
   font-size: 1.25rem;
   line-height: 1.6;
   color: var(--text-secondary);
@@ -380,6 +381,7 @@
 
 /* Right column - Visual elements */
 .visual-column {
+  margin-top: 200px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -866,7 +868,7 @@
 @media (max-width: 1024px) {
   .hero-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 5rem;
   }
 
   .visual-column {

@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import "../css/Home.css"
 
-const Home = ({ darkMode }) => {
+const Home = ({ darkMode, toggleTheme }) => {
   const navigate = useNavigate()
-  
+
   const [bounceEmoji, setBounceEmoji] = useState("🚀")
   const emojis = ["🚀", "💰", "💸", "🎓", "✨"]
   const [tipIndex, setTipIndex] = useState(0)
   const [activeTab, setActiveTab] = useState("save")
+  const [localDarkMode, setLocalDarkMode] = useState(false)
 
   const financeTips = [
     "Track your coffee expenses - small savings add up!",
@@ -19,6 +20,23 @@ const Home = ({ darkMode }) => {
     "Meal prep on weekends to avoid expensive takeout",
     "Use campus resources like free printing and gym access",
   ]
+
+  // Initialize theme from localStorage or props
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme")
+    const isDark = savedTheme === "dark" || darkMode
+    setLocalDarkMode(isDark)
+
+    // Apply theme to body
+    if (isDark) {
+      document.body.classList.add("dark-mode")
+    } else {
+      document.body.classList.remove("dark-mode")
+    }
+  }, [darkMode])
+
+  // Use the passed darkMode prop or local state
+  const currentDarkMode = darkMode !== undefined ? darkMode : localDarkMode
 
   // Change emoji every 3 seconds
   useEffect(() => {
@@ -42,7 +60,7 @@ const Home = ({ darkMode }) => {
   const showSection = (sectionId) => {
     // Function to handle the section navigation
     console.log(`Navigating to ${sectionId}`)
-    
+
     // Handle navigation based on sectionId
     if (sectionId === "register-section") {
       navigate("/auth")
@@ -52,7 +70,7 @@ const Home = ({ darkMode }) => {
   }
 
   return (
-    <section className={`finance-hero ${darkMode ? 'dark-mode' : ''}`}>
+    <section className={`finance-hero ${currentDarkMode ? "dark-mode" : ""}`}>
       {/* Animated background */}
       <div className="animated-background">
         <div className="gradient-sphere sphere-1"></div>
@@ -67,40 +85,40 @@ const Home = ({ darkMode }) => {
           {/* Left column - Main content */}
           <div className="main-column">
             <div className="student-badge">By Students, For Students</div>
-            
+
             <h1 className="headline">
               Student Finance <br />
               <span className="accent-text">Simplified!</span>
               <span className="emoji-highlight">{bounceEmoji}</span>
             </h1>
-            
+
             <p className="tagline">
-              Say goodbye to empty wallets and "can I borrow $5?" texts. Track expenses, crush financial goals, 
-              and still have money for weekend fun!
+              Say goodbye to empty wallets and "can I borrow $5?" texts. Track expenses, crush financial goals, and
+              still have money for weekend fun!
             </p>
-            
+
             <div className="feature-tabs">
               <div className="tab-buttons">
-                <button 
+                <button
                   className={`tab-button ${activeTab === "save" ? "active" : ""}`}
                   onClick={() => setActiveTab("save")}
                 >
                   Save Money
                 </button>
-                <button 
+                <button
                   className={`tab-button ${activeTab === "track" ? "active" : ""}`}
                   onClick={() => setActiveTab("track")}
                 >
                   Track Expenses
                 </button>
-                <button 
+                <button
                   className={`tab-button ${activeTab === "goals" ? "active" : ""}`}
                   onClick={() => setActiveTab("goals")}
                 >
                   Set Goals
                 </button>
               </div>
-              
+
               <div className="tab-content">
                 {activeTab === "save" && (
                   <div className="tab-panel">
@@ -109,7 +127,7 @@ const Home = ({ darkMode }) => {
                     <p>Discover personalized saving tips based on your spending habits and student lifestyle.</p>
                   </div>
                 )}
-                
+
                 {activeTab === "track" && (
                   <div className="tab-panel">
                     <div className="feature-icon">📊</div>
@@ -117,7 +135,7 @@ const Home = ({ darkMode }) => {
                     <p>Easily categorize and visualize where your money goes with intuitive charts and reports.</p>
                   </div>
                 )}
-                
+
                 {activeTab === "goals" && (
                   <div className="tab-panel">
                     <div className="feature-icon">🎯</div>
@@ -127,31 +145,25 @@ const Home = ({ darkMode }) => {
                 )}
               </div>
             </div>
-            
+
             <div className="action-area">
-              <button 
-                className="primary-button"
-                onClick={() => showSection("register-section")}
-              >
+              <button className="primary-button" onClick={() => showSection("register-section")}>
                 Start Saving Today <span className="button-emoji">✨</span>
               </button>
-              <button 
-                className="secondary-button"
-                onClick={() => showSection("how-it-works")}
-              >
+              <button className="secondary-button" onClick={() => showSection("how-it-works")}>
                 See How It Works <span className="button-emoji">👀</span>
               </button>
             </div>
           </div>
-          
+
           {/* Right column - Visual elements */}
           <div className="visual-column">
-            <div className={`finance-card ${darkMode ? 'dark-card' : ''}`}>
+            <div className={`finance-card ${currentDarkMode ? "dark-card" : ""}`}>
               <div className="card-header">
                 <div className="card-title">Track Your Finances</div>
                 <div className="card-balance">----</div>
               </div>
-              
+
               <div className="card-chart">
                 <div className="chart-bar" style={{ height: "60%" }}></div>
                 <div className="chart-bar" style={{ height: "40%" }}></div>
@@ -161,7 +173,7 @@ const Home = ({ darkMode }) => {
                 <div className="chart-bar" style={{ height: "65%" }}></div>
                 <div className="chart-bar" style={{ height: "45%" }}></div>
               </div>
-              
+
               <div className="card-stats">
                 <div className="stat-item">
                   <div className="stat-label">Spent</div>
@@ -177,8 +189,8 @@ const Home = ({ darkMode }) => {
                 </div>
               </div>
             </div>
-            
-            <div className={`tip-box ${darkMode ? 'dark-tip' : ''}`}>
+
+            <div className={`tip-box ${currentDarkMode ? "dark-tip" : ""}`}>
               <div className="tip-icon">💡</div>
               <div className="tip-content">
                 <span className="tip-label">Pro Tip:</span>
@@ -194,7 +206,7 @@ const Home = ({ darkMode }) => {
                 ))}
               </div>
             </div>
-            
+
             <div className="social-proof">
               <div className="stars">★★★★★</div>
               <div className="rating-text">4.8/5 from 10,000+ students</div>
@@ -203,7 +215,7 @@ const Home = ({ darkMode }) => {
         </div>
       </div>
 
-      <footer className={`site-footer ${darkMode ? 'dark-footer' : ''}`}>
+      <footer className={`site-footer ${currentDarkMode ? "dark-footer" : ""}`}>
         <p className="copyright">© {new Date().getFullYear()} Student Finance Simplified. All rights reserved.</p>
       </footer>
 
@@ -214,10 +226,7 @@ const Home = ({ darkMode }) => {
         <div className="shape shape-3"></div>
         <div className="shape shape-4"></div>
       </div>
-      
-      
     </section>
-            
   )
 }
 

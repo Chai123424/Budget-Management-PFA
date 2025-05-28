@@ -42,6 +42,7 @@
   transition: background-color 0.3s ease, color 0.3s ease;
   position: relative;
   overflow-x: hidden;
+  width: 100%;
 }
 
 .dbLightTheme {
@@ -334,6 +335,7 @@
   transition: margin-left 0.3s ease;
   position: relative;
   z-index: 1;
+  min-height: 100vh;
 }
 
 @media (max-width: 767px) {
@@ -342,72 +344,129 @@
   }
 }
 
-/* Header */
+/* FIXED HEADER - Updated for proper sticky behavior */
 .dbHeader {
-  height: 70px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  position: sticky;
+  padding: 1rem 1.5rem;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 280px;
+  right: 0;
+  z-index: 1000;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
+/* Mobile header positioning */
+@media (max-width: 767px) {
+  .dbHeader {
+    left: 0;
+  }
+}
+
+/* Add backdrop blur for better visibility */
 .dbLightTheme .dbHeader {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  height: 110px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
 .dbDarkTheme .dbHeader {
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  height: 110px;
+  background-color: rgba(30, 41, 59, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Header left section */
 .dbHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
+  flex: 0 0 auto;
 }
 
-.dbHeaderLeft h1 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
+/* Header center - Search bar */
+.dbHeaderCenter {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+  max-width: 600px;
+  margin: 0 2rem;
 }
 
-.dbMenuButton {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: inherit;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+/* Header right section */
+.dbHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 0 0 auto;
 }
 
-.dbLightTheme .dbMenuButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.dbDarkTheme .dbMenuButton:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Search bar styles */
+/* Search container */
 .dbSearchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
   flex: 1;
   margin: 0 20px;
-  position: relative;
 }
 
+/* Search input */
+.dbSearchInput {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg-light);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.dbSearchInput::placeholder {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.dbSearchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138, 124, 255, 0.1);
+  background-color: var(--card-bg);
+}
+
+/* Search icon */
+.dbSearchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+  pointer-events: none;
+}
+
+.dbSearchInput:focus + .dbSearchIcon {
+  color: var(--primary);
+}
+
+/* Content with proper top margin to account for fixed header */
+.dbContent {
+  flex: 1;
+  padding: 28px;
+  position: relative;
+  z-index: 1;
+  margin-top: 80px; /* Add margin to account for fixed header height */
+}
+
+/* Search form styles */
 .dbSearchForm {
   width: 100%;
 }
@@ -555,6 +614,26 @@
   justify-content: space-between;
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+.dbMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbMenuButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbMenuButton:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 @media (max-width: 767px) {
@@ -716,14 +795,6 @@
 
 .dbDarkTheme .dbDropdownContent a:hover {
   background-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Content */
-.dbContent {
-  flex: 1;
-  padding: 28px;
-  position: relative;
-  z-index: 1;
 }
 
 .dbWelcome {
@@ -1546,89 +1617,40 @@
   box-shadow: 0 8px 20px rgba(138, 124, 255, 0.4);
 }
 
-/* Animations */
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translate(0, 0);
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .dbSearchContainer {
+    display: none;
   }
-  50% {
-    transform: translate(5%, 5%);
+
+  .dbHeader {
+    justify-content: space-between;
+  }
+
+  .dbHeaderLeft {
+    flex: 1;
+  }
+
+  .dbContent {
+    margin-top: 70px; /* Reduced margin for mobile */
+    padding: 20px;
   }
 }
 
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* Ensure proper scrolling behavior */
+html {
+  scroll-behavior: smooth;
 }
 
-/* Add floating decorative elements */
-.dbDashboard::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
+body {
+  overflow-x: hidden;
 }
 
-/* Add gradient spheres in the background */
-.dbDashboard::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
+/* Add subtle shadow when scrolling */
+.dbHeader.scrolled {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
 }
 
-.dbDarkTheme::after {
-  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.15), transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.1), transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05), transparent 60%);
-}
-
-.dbLightTheme::after {
-  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.1), transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.05), transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03), transparent 60%);
-}
-
-/* Add shine effect to cards */
-.dbStatCard::after,
-.dbTipCard::after,
-.dbSavingCard::after,
-.dbAiServicesCard::after {
-  content: "";
-  position: absolute;
-  top: -100%;
-  left: -100%;
-  width: 300%;
-  height: 300%;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: rotate(45deg);
-  transition: all 0.5s;
-  opacity: 0;
-  z-index: 0;
-}
-
-.dbStatCard:hover::after,
-.dbTipCard:hover::after,
-.dbSavingCard:hover::after,
-.dbAiServicesCard:hover::after {
-  animation: shine 1.5s ease-out;
-  opacity: 1;
+.dbDarkTheme .dbHeader.scrolled {
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
