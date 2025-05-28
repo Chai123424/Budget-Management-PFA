@@ -5,7 +5,7 @@ import LoginSignup from './components/Authentification/LoginSignup';
 function App() {
   return (
     <div>
-      <LoginSignup/>
+      <ai-consulting/>
     </div>
   ); 
 }
