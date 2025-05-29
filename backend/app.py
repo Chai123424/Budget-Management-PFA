@@ -5,86 +5,68 @@ import uuid
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+import bcrypt
 
-from flask_mysqldb import MySQL  # Notez la casse
 
 app = Flask(__name__)
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'budget_app'
-
-mysql = MySQL(app)
-
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:19006", "http://10.0.2.2:*"],
+        "origins": ["http://localhost:8082", "http://10.0.2.2:*"],
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+app.config['SECRET_KEY'] = 'supersecretkey'
+
+# Configuration MongoDB
+app.config['MONGO_URI'] = 'mongodb+srv://khadija:KCS123@cluster0.ae1rtol.mongodb.net/budget_app?retryWrites=true&w=majority'
+
+client = MongoClient(app.config['MONGO_URI'])
+db = client["budget_app"]
+users_collection = db['users']
 
 @app.route('/api/register', methods=['POST'])
 def register():
-    cur = None
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data received"}), 400
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
 
-        cur = mysql.connection.cursor()
-        
-        # Vérification email existant
-        cur.execute("SELECT email FROM users WHERE email = %s", (data['email'],))
-        if cur.fetchone():
-            return jsonify({"error": "Email already exists"}), 409
+    if users_collection.find_one({"email": email}):
+        return jsonify({"message": "Email already exists"}), 409
 
-        # Insertion
-        cur.execute(
-            "INSERT INTO users (public_id, name, email, password) VALUES (%s, %s, %s, %s)",
-            (str(uuid.uuid4()), data['name'], data['email'], generate_password_hash(data['password']))
-        )
-        mysql.connection.commit()
-        return jsonify({"success": True}), 201
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    except Exception as e:
-        if mysql.connection:
-            mysql.connection.rollback()
-        app.logger.error("Error in register: %s", str(e))
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if cur:
-            cur.close()
-            
-                
+    users_collection.insert_one({
+        "name": name,
+        "email": email,
+        "password": hashed
+    })
+
+    return jsonify({"message": "User registered successfully"}), 201
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    
-    if not data or not data['email'] or not data['password']:
-        return jsonify({'message': 'Veuillez fournir un email et un mot de passe !'}), 400
-    
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM users WHERE email = %s", (data['email'],))
-    user = cur.fetchone()
-    cur.close()
-    
-    if not user or not check_password_hash(user['password'], data['password']):
-        return jsonify({'message': 'Identifiants invalides !'}), 401
-    
-    token = jwt.encode({
-        'public_id': user['public_id'],
-        'exp': datetime.utcnow() + timedelta(days=30)
-    }, app.config['SECRET_KEY'], algorithm="HS256")
-    
-    return jsonify({
-        'token': token,
-        'user': {
-            'id': user['public_id'],
-            'name': user['name'],
-            'email': user['email']
-        }
-    }), 200
+    email = data.get('email')
+    password = data.get('password')
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        return jsonify({"message": "Invalid email or password"}), 401
+
+    if bcrypt.checkpw(password.encode('utf-8'), user['password']):
+        token = jwt.encode(
+            {'user_id': str(user['_id']), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)},
+            app.config['SECRET_KEY'],
+            algorithm="HS256"
+        )
+        return jsonify({"token": token, "user": {"email": email}}), 200
+    else:
+        return jsonify({"message": "Invalid email or password"}), 401
+
     
     
 @app.route('/api/forgot-password', methods=['POST'])
@@ -94,13 +76,10 @@ def forgot_password():
     if not data or not data.get('email'):
         return jsonify({'message': 'Email is required!'}), 400
     
-    # Always return success to prevent email enumeration attacks
     return jsonify({'message': 'If an account with that email exists, a password reset link has been sent.'}), 200
 
 @app.route('/api/user', methods=['GET'])
 def get_user_info():
-    # This would normally be protected with a token check
-    # For testing, just return a success message
     return jsonify({'message': 'User info endpoint works!'}), 200
 
 @app.route('/api/test', methods=['GET'])
@@ -108,4 +87,4 @@ def test():
     return jsonify({'message': 'API is working!'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
