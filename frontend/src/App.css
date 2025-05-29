@@ -1,38 +1,95 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom right, #e9d5ff, #c4b5fd);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 1rem;
+}
+
+.chat-wrapper {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  height: 600px;
+}
+
+.chat-header {
+  background-color: #7c3aed;
   color: white;
+  padding: 1rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.App-link {
-  color: #61dafb;
+.chat-body {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.chat-bubble {
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  max-width: 75%;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
+
+.chat-user {
+  background-color: #ede9fe;
+  align-self: flex-end;
+  text-align: right;
+}
+
+.chat-ai {
+  background-color: #f3f4f6;
+  align-self: flex-start;
+  text-align: left;
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: white;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+.chat-input button {
+  background-color: #7c3aed;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  color: white;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background-color: #6d28d9;
+}
+

@@ -1,13 +1,13 @@
-
-import './App.css';
-import LoginSignup from './components/Authentification/LoginSignup';
+import React from "react";
+import Chatbot from "./components/Authentification/chatbot";
+import "./App.css";
 
 function App() {
   return (
-    <div>
-      <LoginSignup/>
+    <div className="app-container">
+      <Chatbot />
     </div>
-  ); 
+  );
 }
 
 export default App;
