@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRouter } from 'expo-router';
 
 
-// API URL - change this to your Flask server address
+
 const API_URL = "http://10.0.2.2:5000/api" // For Android emulator
 // const API_URL = 'http://localhost:5000/api'; // For iOS simulator
 
@@ -37,10 +37,8 @@ const LoginSignup = () => {
   const [isLoading, setIsLoading] = useState(false)
   const deviceTheme = useColorScheme()
 
-  // Purple theme color
-  const THEME_COLOR = "#8A70FF"
+   const THEME_COLOR = "#8A70FF"
 
-  // Initialize theme based on device preference
   useEffect(() => {
     setDarkMode(deviceTheme === "dark")
   }, [deviceTheme])
@@ -63,7 +61,6 @@ const LoginSignup = () => {
   }
 
   const validatePassword = (password) => {
-    // At least 8 characters, one uppercase, one number, and one special character
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/
 
     if (!password) {
@@ -84,16 +81,12 @@ const LoginSignup = () => {
     if (!password) return 0
     let strength = 0
 
-    // Minimum length
     if (password.length >= 8) strength += 1
 
-    // Contains uppercase and lowercase letters
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 1
 
-    // Contains numbers
     if (/\d/.test(password)) strength += 1
 
-    // Contains special characters
     if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) strength += 1
 
     return strength
@@ -102,15 +95,15 @@ const LoginSignup = () => {
   const getStrengthColor = (strength) => {
     switch (strength) {
       case 1:
-        return "#FF6B6B" // Weak - Red
+        return "#FF6B6B" 
       case 2:
-        return "#FFD166" // Medium - Yellow
+        return "#FFD166" 
       case 3:
-        return "#06D6A0" // Good - Green
+        return "#06D6A0" 
       case 4:
-        return "#118AB2" // Strong - Blue
+        return "#118AB2" 
       default:
-        return "#CCCCCC" // Very weak - Gray
+        return "#CCCCCC" 
     }
   }
 
@@ -129,9 +122,9 @@ const LoginSignup = () => {
     }
   }
 
-  // Form submission
+  
   const handleSubmit = async () => {
-  // Validation côté client d'abord
+  
   if (!validateEmail(email)) return;
   if (action === "Sign Up" && !name) {
     Alert.alert("Error", "Name is required");
@@ -157,16 +150,16 @@ const LoginSignup = () => {
     console.log("API Response:", response.data);
 
     if (action === "Login") {
-      // Stockage du token et redirection
+      
       await AsyncStorage.setItem("authToken", response.data.token);
       await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
       router.push("../Dashboard/Dashboard")
     } else {
-      // Feedback après inscription
-      Alert.alert("Success", "Account created successfully!", [
-        { text: "OK", onPress: () => setAction("Login") }
-      ]);
-      // Réinitialisation du formulaire
+      
+      await AsyncStorage.setItem("authToken", response.data.token); 
+      await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
+      router.push("../Formulaire/Form");
+      
       setName("");
       setEmail("");
       setPassword("");
@@ -188,7 +181,7 @@ const LoginSignup = () => {
     if (validateEmail(email)) {
       setIsLoading(true)
       try {
-        // Password reset request to Flask backend
+        
         await axios.post(`${API_URL}/forgot-password`, { email })
 
         Alert.alert("Password Reset", `If an account is associated with ${email}, a reset email will be sent.`)
@@ -196,7 +189,7 @@ const LoginSignup = () => {
         setAction("Login")
       } catch (error) {
         console.error("Password reset error:", error)
-        // We don't show specific errors for password reset to prevent email enumeration
+        
         Alert.alert("Password Reset", `If an account is associated with ${email}, a reset email will be sent.`)
       } finally {
         setIsLoading(false)
@@ -204,7 +197,7 @@ const LoginSignup = () => {
     }
   }
 
-  // Theme-based colors
+  
   const theme = {
     background: darkMode ? "#1E1E1E" : "#FFFFFF",
     text: darkMode ? "#FFFFFF" : "#333333",

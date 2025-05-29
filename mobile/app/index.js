@@ -11,7 +11,7 @@ export default function Index() {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem("token")
       setUserToken(token)
-      setTimeout(() => setIsLoading(false), 2000) // petit délai pour loading screen
+      setTimeout(() => setIsLoading(false), 2000) 
     }
     checkToken()
   }, [])
