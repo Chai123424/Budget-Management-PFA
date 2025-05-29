@@ -156,9 +156,9 @@ const LoginSignup = () => {
       router.push("../Dashboard/Dashboard")
     } else {
       
-      await AsyncStorage.setItem("authToken", response.data.token); 
-      await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
-      router.push("../Formulaire/Form");
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => router.push("../Formulaire/form") }
+      ]);
       
       setName("");
       setEmail("");
