@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { SendHorizonal } from "lucide-react";
 
-export default function Chatbot() {
+export default function Chatbot1() {
   const [messages, setMessages] = useState([
     {
       sender: "ai",
