@@ -24,12 +24,15 @@ import {
   ChevronRight,
   Sparkles,
   Search,
+  MapPin,
 } from "lucide-react"
 import "../css/Dashboard.css"
 import logo from "../assets/icons/money-management.png";
 import Expenses from "./Expenses";
 import Savings from "./Savings";
 import GoalsPage  from "./Goals";
+import GroceryMap from "./GroceryMap";
+
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true)
@@ -162,6 +165,13 @@ export default function Dashboard() {
             <GoalsPage darkMode={darkMode} />
           </div>
         )
+      // Add this case for the grocery map
+      case "grocery-map":
+        return (
+          <div className="content-page">
+            <GroceryMap darkMode={darkMode} />
+          </div>
+        )
       case "ai-advisor":
       case "weekly-basket":
       case "reports":
@@ -179,6 +189,7 @@ export default function Dashboard() {
       "goals": "Objectifs",
       "ai-advisor": "Conseiller IA",
       "weekly-basket": "Panier hebdomadaire",
+      "grocery-map": "Localisateur de magasins", 
       "reports": "Rapports",
       "calendar": "Calendrier"
     }
@@ -344,6 +355,17 @@ export default function Dashboard() {
               <ChevronRight size={20} className="dbAiServiceArrow" />
             </div>
           </div>
+
+          <div className="dbAiServiceItem" onClick={() => handleTabChange("grocery-map")}>
+              <div className="dbAiServiceIcon dbBlue">
+                <MapPin size={24} />
+              </div>
+              <div className="dbAiServiceContent">
+                <h4>Simplify Map</h4>
+                <p>Find nearby grocery stores and get directions in Fès</p>
+              </div>
+              <ChevronRight size={20} className="dbAiServiceArrow" />
+            </div>
         </div>
 
         {/* Pro Tip Card */}
@@ -465,6 +487,12 @@ export default function Dashboard() {
                 <button onClick={() => handleTabChange("weekly-basket")}>
                   <ShoppingBasket size={20} />
                   <span>Weekly Basket</span>
+                </button>
+              </li>
+              <li className={activeTab === "grocery-map" ? "dbActive" : ""}>
+                <button onClick={() => handleTabChange("grocery-map")}>
+                  <MapPin size={20} />
+                  <span>Simplify Map</span>
                 </button>
               </li>
             </ul>
