@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // Import corrigé
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import ajouté
+import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 const Form = ({ darkMode, toggleTheme }) => {
@@ -34,27 +34,49 @@ const Form = ({ darkMode, toggleTheme }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Load saved data on component mount
+  useEffect(() => {
+    loadSavedData();
+  }, []);
+
+  const loadSavedData = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('budgetFormData');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setFormData(parsedData);
+        console.log('Loaded saved data:', parsedData);
+      }
+    } catch (error) {
+      console.error('Error loading saved data:', error);
+    }
+  };
+
   const validateStep = () => {
     const newErrors = {};
 
     if (step === 1) {
-      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required!';
-      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required!';
-      if (!formData.age.trim()) newErrors.age = 'Age is required!';
-      if (!formData.email.trim()) {
+      if (!formData.lastName || !formData.lastName.trim()) newErrors.lastName = 'Last name is required!';
+      if (!formData.firstName || !formData.firstName.trim()) newErrors.firstName = 'First name is required!';
+  
+      if (!formData.age || String(formData.age).trim() === '') newErrors.age = 'Age is required!';
+  
+      if (!formData.email || !formData.email.trim()) {
         newErrors.email = 'Email is required!';
       } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
         newErrors.email = 'Email is invalid!';
       }
       if (!formData.university) newErrors.university = 'University selection is required!';
     } else if (step === 2) {
-      if (!formData.budget.trim()) newErrors.budget = 'Budget is required!';
-      if (formData.hasTuition === 'yes' && !formData.tuitionAmount.trim()) {
+      if (!formData.budget || String(formData.budget).trim() === '') newErrors.budget = 'Budget is required!';
+  
+      if (formData.hasTuition === 'yes' && (!formData.tuitionAmount || String(formData.tuitionAmount).trim() === '')) {
         newErrors.tuitionAmount = 'Tuition amount is required when you have tuition!';
       }
-      if (!formData.rent.trim()) newErrors.rent = 'Rent amount is required!';
-      if (!formData.food.trim()) newErrors.food = 'Food amount is required!';
-      if (!formData.transport.trim()) newErrors.transport = 'Transport amount is required!';
+  
+      if (!formData.rent || String(formData.rent).trim() === '') newErrors.rent = 'Rent amount is required!';
+      if (!formData.food || String(formData.food).trim() === '') newErrors.food = 'Food amount is required!';
+      if (!formData.transport || String(formData.transport).trim() === '') newErrors.transport = 'Transport amount is required!';
     }
 
     setErrors(newErrors);
@@ -87,11 +109,12 @@ const Form = ({ darkMode, toggleTheme }) => {
     setStep((prevStep) => prevStep - 1);
   };
 
-  const saveData = async () => { // Ajout de async
+  const saveData = async () => {
     if (validateStep()) {
       try {
         // Save data to AsyncStorage
         await AsyncStorage.setItem('budgetFormData', JSON.stringify(formData));
+        console.log('Data saved successfully:', formData);
         setSaveMessage('Data saved successfully!');
 
         // Clear message after 3 seconds
@@ -105,49 +128,171 @@ const Form = ({ darkMode, toggleTheme }) => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep()) return; 
+  // Fonction handleSubmit corrigée pour sauvegarder en base de données
+const handleSubmit = async () => {
+  if (!validateStep()) return;
 
+  try {
+    setIsSubmitting(true);
+    
+    // Get user credentials from AsyncStorage
+    const userId = await AsyncStorage.getItem('userId');
+    const token = await AsyncStorage.getItem('token');
+    
+    console.log('User credentials:', { userId, token });
+
+    const submissionData = {
+      ...formData,
+      budget: parseFloat(formData.budget) || 0,
+      hasTuition: formData.hasTuition,
+      tuitionAmount: formData.hasTuition === 'yes' ? (parseFloat(formData.tuitionAmount) || 0) : 0,
+      rent: parseFloat(formData.rent) || 0,
+      food: parseFloat(formData.food) || 0,
+      transport: parseFloat(formData.transport) || 0
+    };
+
+    console.log('Submission data:', submissionData);
+
+    // Save complete profile data locally first
+    await AsyncStorage.setItem('userProfile', JSON.stringify(submissionData));
+    await AsyncStorage.setItem('budgetFormData', JSON.stringify(submissionData));
+    
+    console.log('Data saved locally');
+
+    // **SECTION DÉCOMMENTÉE ET CORRIGÉE POUR LA BASE DE DONNÉES**
     try {
-      setIsSubmitting(true);
+      // Remplacez 'YOUR_API_ENDPOINT' par l'URL réelle de votre API
+      const API_BASE_URL = 'http://10.0.2.2:5000/api'; // À modifier
       
-      
-      const submissionData = {
-        lastName: formData.lastName,
-        firstName: formData.firstName,
-        age: formData.age,
-        email: formData.email,
-        university: formData.university,
-        budget: {
-          monthly: formData.budget,
-          tuition: formData.hasTuition === 'yes' ? formData.tuitionAmount : '0',
-          expenses: {
-            rent: formData.rent,
-            food: formData.food,
-            transportation: formData.transport,
+      if (userId && token) {
+        const response = await fetch(`${API_BASE_URL}/budget-form`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            // Ajoutez d'autres headers si nécessaire
           },
-        },
-      };
+          body: JSON.stringify({
+            userId,
+            ...submissionData
+          }),
+        });
 
-      // Save to AsyncStorage
-      await AsyncStorage.setItem('userProfile', JSON.stringify(submissionData));
-      
-      
-      await AsyncStorage.setItem('isAuthenticated', 'true');
-      await AsyncStorage.removeItem('pendingSignup'); 
+        const responseData = await response.json();
 
+        if (!response.ok) {
+          throw new Error(responseData.message || 'Failed to submit data to server');
+        }
+
+        console.log('Data submitted to server successfully:', responseData);
+        
+        Alert.alert(
+          'Success',
+          'Form submitted and saved to database successfully!',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                try {
+                  navigation.navigate('Dashboard');
+                } catch (navError) {
+                  console.error('Navigation error:', navError);
+                  navigation.goBack();
+                }
+              }
+            }
+          ]
+        );
+        
+      } else {
+  console.warn('No user credentials found, data saved locally only');
+  Alert.alert(
+    'Warning',
+    'Data saved locally. Please login to sync with server.',
+    [
+      {
+        text: 'OK',
+        onPress: () => {
+          try {
+            navigation.navigate('../LoginScreen/Login');
+          } catch (navError) {
+            console.error('Navigation error:', navError);
+            navigation.goBack();
+          }
+        }
+      }
+    ]
+  );
+}
       
-      navigation.navigate('Dashboard');
+    } catch (serverError) {
+      console.error('Server submission error:', serverError);
       
-    } catch (error) {
-      console.error('Submission error:', error);
-      Alert.alert('Error', 'Error submitting form. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      // Même en cas d'erreur serveur, on peut continuer avec les données locales
+      Alert.alert(
+        'Partial Success',
+        `Data saved locally, but server sync failed: ${serverError.message}. You can try syncing later.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              try {
+                navigation.navigate('Dashboard');
+              } catch (navError) {
+                console.error('Navigation error:', navError);
+                navigation.goBack();
+              }
+            }
+          }
+        ]
+      );
     }
-  };
 
-  // Calcul des totaux (corrigé)
+  } catch (error) {
+    console.error('Submission error:', error);
+    Alert.alert('Error', `Error submitting form: ${error.message}. Please try again.`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// **FONCTION ADDITIONNELLE : Synchronisation différée**
+const syncWithServer = async () => {
+  try {
+    const savedData = await AsyncStorage.getItem('userProfile');
+    const userId = await AsyncStorage.getItem('userId');
+    const token = await AsyncStorage.getItem('token');
+    
+    if (savedData && userId && token) {
+      const parsedData = JSON.parse(savedData);
+      
+      const response = await fetch(`${API_BASE_URL}/budget-form`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+          ...parsedData
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Data synced with server successfully');
+        // Marquer comme synchronisé
+        await AsyncStorage.setItem('dataSynced', 'true');
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    console.error('Sync error:', error);
+    return false;
+  }
+};
+
+  // Calculate totals
   const calculateTotals = () => {
     const rent = parseFloat(formData.rent) || 0;
     const food = parseFloat(formData.food) || 0;

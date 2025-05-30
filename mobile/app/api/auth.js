@@ -85,6 +85,56 @@ export const isAuthenticated = async () => {
   return !!token;
 };
 
+export const saveBudgetData = async (userId, formData) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/users/save_budget_data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        budget: formData.budget,
+        hasTuition: formData.hasTuition,
+        tuitionAmount: formData.tuitionAmount,
+        rent: formData.rent,
+        food: formData.food,
+        transport: formData.transport
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Save budget error:', error);
+    throw error;
+  }
+};
+
+export const getBudgetData = async (userId) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/users/get_budget_data`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch budget data');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Get budget error:', error);
+    throw error;
+  }
+};
+
 export default {
   register,
   login,
@@ -92,5 +142,7 @@ export default {
   resetPassword,
   logout,
   getCurrentUser,
-  isAuthenticated
+  isAuthenticated,
+  saveBudgetData,
+  getBudgetData
 };
