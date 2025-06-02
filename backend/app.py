@@ -12,13 +12,12 @@ from db_connection import get_database_connection
 from dotenv import load_dotenv
 from functools import wraps
 
-# Charger les variables d'environnement du fichier .env
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:8081", "http://10.0.2.2:*"],
+        "origins": ["http://localhost:8082", "http://10.0.2.2:*"],
         "methods": ["GET", "POST", "PUT", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
