@@ -85,64 +85,37 @@ export const isAuthenticated = async () => {
   return !!token;
 };
 
-export const saveBudgetData = async (userId, formData) => {
+export const saveBudgetData = async (formData) => {
   try {
-    const token = await AsyncStorage.getItem('token');
-    const response = await fetch(`${API_URL}/users/save_budget_data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        budget: formData.budget,
-        hasTuition: formData.hasTuition,
-        tuitionAmount: formData.tuitionAmount,
-        rent: formData.rent,
-        food: formData.food,
-        transport: formData.transport
-      })
+    const response = await api.post('/users/save_budget_data', {
+      budget: formData.budget,
+      hasTuition: formData.hasTuition,
+      tuitionAmount: formData.tuitionAmount,
+      rent: formData.rent,
+      food: formData.food,
+      transport: formData.transport,
     });
-    
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error('Save budget error:', error);
-    throw error;
+    if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { message: 'Network error' };
+    }
   }
 };
 
-export const getBudgetData = async (userId) => {
+export const getBudgetData = async () => {
   try {
-    const token = await AsyncStorage.getItem('token');
-    const response = await fetch(`${API_URL}/users/get_budget_data`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch budget data');
-    }
-    
-    return await response.json();
+    const response = await api.get('/users/get_budget_data');
+    return response.data;
   } catch (error) {
     console.error('Get budget error:', error);
-    throw error;
+    if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { message: 'Network error' };
+    }
   }
-};
-
-export default {
-  register,
-  login,
-  forgotPassword,
-  resetPassword,
-  logout,
-  getCurrentUser,
-  isAuthenticated,
-  saveBudgetData,
-  getBudgetData
 };

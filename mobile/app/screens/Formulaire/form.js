@@ -13,9 +13,12 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+
 
 const Form = ({ darkMode, toggleTheme }) => {
   const navigation = useNavigation();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     lastName: '',
@@ -210,18 +213,18 @@ const handleSubmit = async () => {
     'Warning',
     'Data saved locally. Please login to sync with server.',
     [
-      {
-        text: 'OK',
-        onPress: () => {
-          try {
-            navigation.navigate('../LoginScreen/Login');
-          } catch (navError) {
-            console.error('Navigation error:', navError);
-            navigation.goBack();
-          }
-        }
+  {
+    text: 'OK',
+    onPress: () => {
+      try {
+        router.push('../LoginScreen/loginScreen'); 
+      } catch (navError) {
+        console.error('Navigation error:', navError);
+        router.back(); 
       }
-    ]
+    },
+  },
+  ]
   );
 }
       
@@ -256,7 +259,6 @@ const handleSubmit = async () => {
   }
 };
 
-// **FONCTION ADDITIONNELLE : Synchronisation différée**
 const syncWithServer = async () => {
   try {
     const savedData = await AsyncStorage.getItem('userProfile');
