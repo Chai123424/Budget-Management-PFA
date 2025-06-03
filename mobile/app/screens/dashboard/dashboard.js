@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet, TextInput, StatusBar, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { CreditCard, Wallet, DollarSign, ArrowUpRight, Lightbulb, Sun, Moon } from "lucide-react-native";
+import { CreditCard, Wallet, DollarSign, ArrowUpRight, Lightbulb, Sun, Moon, Home, TrendingUp, Target, ShoppingBasket, User, Plus, Edit3 } from "lucide-react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS } from "../theme/colors"; // à créer
+import ChatbotButton from '../commun/ChatbotButton';
+import { FontAwesome } from '@expo/vector-icons';
+
+// Configuration des couleurs
+const COLORS = {
+  primary: '#6366f1',
+  primaryLight: '#8b5cf6',
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  background: '#f8fafc',
+  backgroundDark: '#0f172a',
+  card: '#ffffff',
+  cardDark: '#1e293b',
+  text: '#0f172a',
+  textLight: '#f8fafc',
+  textSecondary: '#475569',
+  textSecondaryDark: '#cbd5e1',
+};
 
 export default function Dashboard() {
   const router = useRouter();
@@ -36,6 +54,21 @@ export default function Dashboard() {
     lastName: ''
   });
 
+  // État pour les objectifs
+  const [goals, setGoals] = useState([
+    { id: 1, title: "Emergency Fund", target: 1000, current: 250, category: "safety" },
+    { id: 2, title: "New Laptop", target: 800, current: 320, category: "tech" },
+    { id: 3, title: "Summer Vacation", target: 1200, current: 180, category: "travel" }
+  ]);
+
+  // État pour le panier hebdomadaire
+  const [weeklyBasket, setWeeklyBasket] = useState([
+    { id: 1, item: "Groceries", budget: 80, spent: 65, category: "food" },
+    { id: 2, item: "Transport", budget: 25, spent: 20, category: "transport" },
+    { id: 3, item: "Entertainment", budget: 40, spent: 55, category: "fun" },
+    { id: 4, item: "Coffee & Snacks", budget: 15, spent: 12, category: "food" }
+  ]);
+
   const tips = [
     "Track your coffee expenses - small savings add up!",
     "Set a weekly budget for entertainment to avoid overspending",
@@ -46,7 +79,6 @@ export default function Dashboard() {
     `Your biggest expense is rent (${Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100)}% of total expenses)`,
   ];
 
-  // Fonction pour charger les données du formulaire
   const loadBudgetData = async () => {
     try {
       // Charger les données du profil utilisateur
@@ -76,8 +108,7 @@ export default function Dashboard() {
         const totalIncome = budget + tuitionAmount;
         const remaining = totalIncome - totalExpenses;
         const saved = remaining > 0 ? remaining : 0;
-        
-        // Mettre à jour les états
+
         setBudgetData({
           spent: totalExpenses,
           saved: saved,
@@ -100,7 +131,6 @@ export default function Dashboard() {
         });
       } else {
         console.log('Aucune donnée de budget trouvée');
-        // Données par défaut si aucune donnée n'est trouvée
         setBudgetData({
           spent: 0,
           saved: 0,
@@ -124,7 +154,7 @@ export default function Dashboard() {
       setActiveTip((prev) => (prev + 1) % tips.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [budgetData]); // Relancer quand les données changent
+  }, [budgetData]); 
 
   const theme = darkMode ? styles.dark : styles.light;
 
@@ -135,8 +165,8 @@ export default function Dashboard() {
   const calculateTrend = (current, category) => {
     // Simulation de données du mois précédent
     const lastMonthData = {
-      spent: current * 1.12, // 12% de plus le mois dernier
-      saved: current * 0.92  // 8% de moins le mois dernier
+      spent: current * 1.12, 
+      saved: current * 0.92  
     };
     
     if (category === 'spent') {
@@ -152,34 +182,463 @@ export default function Dashboard() {
   const spentTrend = calculateTrend(budgetData.spent, 'spent');
   const savedTrend = calculateTrend(budgetData.saved, 'saved');
 
+  const renderOverviewContent = () => (
+    <View style={styles.statsGrid}>
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Spent this month</Text>
+        <CreditCard color={COLORS.primary} />
+        <Text style={[styles.amount, theme.text]}>{budgetData.spent.toFixed(0)} €</Text>
+        <View style={styles.trendRow}>
+          <ArrowUpRight size={16} color={spentTrend > 0 ? COLORS.success : COLORS.warning} />
+          <Text style={{ color: spentTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
+            {Math.abs(spentTrend)}% {spentTrend > 0 ? 'less' : 'more'} than last month
+          </Text>
+        </View>
+      </View>
+
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Saved this month</Text>
+        <Wallet color={COLORS.success} />
+        <Text style={[styles.amount, theme.text]}>{budgetData.saved.toFixed(0)} €</Text>
+        <View style={styles.trendRow}>
+          <ArrowUpRight size={16} color={savedTrend > 0 ? COLORS.success : COLORS.warning} />
+          <Text style={{ color: savedTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
+            {Math.abs(savedTrend)}% {savedTrend > 0 ? 'more' : 'less'} than last month
+          </Text>
+        </View>
+      </View>
+
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Remaining Budget</Text>
+        <DollarSign color={budgetData.remaining >= 0 ? COLORS.success : COLORS.warning} />
+        <Text style={[styles.amount, theme.text, budgetData.remaining < 0 && { color: COLORS.warning }]}>
+          {budgetData.remaining.toFixed(0)} €
+        </Text>
+        <Text style={theme.textSecondary}>
+          {percentRemaining}% of monthly budget ({budgetData.budget.toFixed(0)} €)
+        </Text>
+        <View style={styles.progressBarContainer}>
+          <View style={[
+            styles.progressBar, 
+            { 
+              width: `${Math.min(Math.abs(percentRemaining), 100)}%`, 
+              backgroundColor: budgetData.remaining >= 0 ? COLORS.success : COLORS.warning 
+            }
+          ]} />
+        </View>
+        <View style={styles.progressLabels}>
+          <Text style={theme.textSecondary}>0 €</Text>
+          <Text style={theme.textSecondary}>{budgetData.budget.toFixed(0)} €</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderExpensesContent = () => (
+    <View style={styles.statsGrid}>
+      <Text style={[styles.sectionTitle, theme.text]}>Expense Breakdown</Text>
+      
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Rent</Text>
+        <Text style={[styles.amount, theme.text]}>{expenseDetails.rent.toFixed(0)} €</Text>
+        <Text style={theme.textSecondary}>
+          {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100) : 0}% of total expenses
+        </Text>
+      </View>
+
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Food</Text>
+        <Text style={[styles.amount, theme.text]}>{expenseDetails.food.toFixed(0)} €</Text>
+        <Text style={theme.textSecondary}>
+          {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.food / budgetData.totalExpenses) * 100) : 0}% of total expenses
+        </Text>
+      </View>
+
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Transport</Text>
+        <Text style={[styles.amount, theme.text]}>{expenseDetails.transport.toFixed(0)} €</Text>
+        <Text style={theme.textSecondary}>
+          {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.transport / budgetData.totalExpenses) * 100) : 0}% of total expenses
+        </Text>
+      </View>
+
+      {expenseDetails.tuitionAmount > 0 && (
+        <View style={[styles.statCard, theme.card]}>
+          <Text style={theme.textSecondary}>Tuition Income</Text>
+          <Text style={[styles.amount, theme.text, { color: COLORS.success }]}>
+            {expenseDetails.tuitionAmount.toFixed(0)} €
+          </Text>
+          <Text style={theme.textSecondary}>Additional income</Text>
+        </View>
+      )}
+
+      <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#2d1b69' : '#f0f4ff' }]}>
+        <Text style={theme.textSecondary}>Total Monthly Expenses</Text>
+        <Text style={[styles.amount, theme.text]}>{budgetData.totalExpenses.toFixed(0)} €</Text>
+        <Text style={theme.textSecondary}>
+          {budgetData.budget > 0 ? percentSpent : 0}% of budget used
+        </Text>
+      </View>
+      
+      <TouchableOpacity
+        style={[styles.viewMoreButton, theme.card]}
+        onPress={() => router.push('/expenses')}
+      >
+        <Text style={theme.text}>Voir plus →</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderSavingsContent = () => (
+    <View style={styles.statsGrid}>
+      <Text style={[styles.sectionTitle, theme.text]}>Savings Overview</Text>
+      
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>This Month's Savings</Text>
+        <Wallet color={COLORS.success} />
+        <Text style={[styles.amount, theme.text, { color: COLORS.success }]}>
+          {budgetData.saved.toFixed(0)} €
+        </Text>
+        <Text style={theme.textSecondary}>
+          {budgetData.budget > 0 ? Math.round((budgetData.saved / budgetData.budget) * 100) : 0}% of income saved
+        </Text>
+      </View>
+
+      <View style={[styles.statCard, theme.card]}>
+        <Text style={theme.textSecondary}>Savings Goal Progress</Text>
+        <Text style={[styles.amount, theme.text]}>
+          {Math.round((budgetData.saved / (budgetData.budget * 0.2)) * 100)}% 
+        </Text>
+        <Text style={theme.textSecondary}>
+          Goal: 20% of income ({(budgetData.budget * 0.2).toFixed(0)} €)
+        </Text>
+        <View style={styles.progressBarContainer}>
+          <View style={[
+            styles.progressBar, 
+            { 
+              width: `${Math.min((budgetData.saved / (budgetData.budget * 0.2)) * 100, 100)}%`, 
+              backgroundColor: COLORS.success 
+            }
+          ]} />
+        </View>
+      </View>
+
+      {budgetData.remaining < 0 && (
+        <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#4a1d1d' : '#fff5f5' }]}>
+          <Text style={[theme.textSecondary, { color: COLORS.warning }]}>Budget Alert</Text>
+          <Text style={[styles.amount, { color: COLORS.warning }]}>
+            {Math.abs(budgetData.remaining).toFixed(0)} € over budget
+          </Text>
+          <Text style={theme.textSecondary}>Consider reducing expenses next month</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderGoalsContent = () => (
+    <View style={styles.statsGrid}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, theme.text]}>Financial Goals 🎯</Text>
+        <TouchableOpacity style={[styles.editButton, theme.card]}>
+          <Edit3 color={COLORS.primary} size={18} />
+        </TouchableOpacity>
+      </View>
+      
+      {goals.map((goal) => {
+        const progressPercent = Math.min((goal.current / goal.target) * 100, 100);
+        const remaining = goal.target - goal.current;
+        
+        return (
+          <View key={goal.id} style={[styles.statCard, theme.card]}>
+            <View style={styles.goalHeader}>
+              <View>
+                <Text style={[styles.goalTitle, theme.text]}>{goal.title}</Text>
+                <Text style={[styles.goalCategory, theme.textSecondary]}>
+                  {goal.category === 'safety' && '🛡️ Emergency'}
+                  {goal.category === 'tech' && '💻 Technology'}
+                  {goal.category === 'travel' && '✈️ Travel'}
+                </Text>
+              </View>
+              <View style={styles.goalActions}>
+                <TouchableOpacity style={[styles.miniButton, { backgroundColor: COLORS.success }]}>
+                  <Plus color="white" size={16} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <View style={styles.goalAmounts}>
+              <Text style={[styles.goalCurrentAmount, theme.text]}>{goal.current} €</Text>
+              <Text style={[styles.goalTargetAmount, theme.textSecondary]}>/ {goal.target} €</Text>
+            </View>
+            
+            <Text style={[styles.goalProgress, theme.textSecondary]}>
+              {progressPercent.toFixed(0)}% completed • {remaining} € remaining
+            </Text>
+            
+            <View style={styles.progressBarContainer}>
+              <View style={[
+                styles.progressBar, 
+                { 
+                  width: `${progressPercent}%`, 
+                  backgroundColor: progressPercent === 100 ? COLORS.success : COLORS.primary 
+                }
+              ]} />
+            </View>
+            
+            <View style={styles.progressLabels}>
+              <Text style={theme.textSecondary}>0 €</Text>
+              <Text style={theme.textSecondary}>{goal.target} €</Text>
+            </View>
+            
+            {progressPercent === 100 && (
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedText}>🎉 Goal Completed!</Text>
+              </View>
+            )}
+          </View>
+        );
+      })}
+
+      <TouchableOpacity style={[styles.addGoalButton, theme.card]}>
+        <Plus color={COLORS.primary} size={20} />
+        <Text style={[styles.addGoalText, { color: COLORS.primary }]}>Add New Goal</Text>
+      </TouchableOpacity>
+      
+      {/* Goal Statistics Summary */}
+      <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#1a2332' : '#f0f9ff' }]}>
+        <Text style={[styles.summaryTitle, theme.text]}>Goals Summary</Text>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Text style={[styles.summaryNumber, theme.text]}>
+              {goals.filter(g => (g.current / g.target) === 1).length}
+            </Text>
+            <Text style={theme.textSecondary}>Completed</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={[styles.summaryNumber, theme.text]}>
+              {goals.filter(g => (g.current / g.target) > 0.5 && (g.current / g.target) < 1).length}
+            </Text>
+            <Text style={theme.textSecondary}>In Progress</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={[styles.summaryNumber, theme.text]}>
+              {goals.reduce((sum, g) => sum + g.current, 0).toFixed(0)} €
+            </Text>
+            <Text style={theme.textSecondary}>Total Saved</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderWeeklyBasketContent = () => {
+    const totalBudget = weeklyBasket.reduce((sum, item) => sum + item.budget, 0);
+    const totalSpent = weeklyBasket.reduce((sum, item) => sum + item.spent, 0);
+    const isOverBudget = totalSpent > totalBudget;
+    
+    return (
+      <View style={styles.statsGrid}>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, theme.text]}>Weekly Budget Tracker 📊</Text>
+          <TouchableOpacity style={[styles.editButton, theme.card]}>
+            <Edit3 color={COLORS.primary} size={18} />
+          </TouchableOpacity>
+        </View>
+        
+        {/* Weekly Summary Card */}
+        <View style={[styles.statCard, theme.card, { 
+          backgroundColor: darkMode 
+            ? (isOverBudget ? '#4a1d1d' : '#1a3d1a') 
+            : (isOverBudget ? '#fff5f5' : '#f0fff0') 
+        }]}>
+          <View style={styles.summaryHeader}>
+            <Text style={[styles.summaryTitle, theme.text]}>This Week's Budget</Text>
+            <View style={[styles.statusBadge, { 
+              backgroundColor: isOverBudget ? COLORS.warning : COLORS.success 
+            }]}>
+              <Text style={styles.statusText}>
+                {isOverBudget ? '⚠️ Over' : '✅ On Track'}
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.amount, theme.text, isOverBudget && { color: COLORS.warning }]}>
+            {totalSpent} € / {totalBudget} €
+          </Text>
+          <Text style={theme.textSecondary}>
+            {isOverBudget 
+              ? `${(totalSpent - totalBudget).toFixed(0)} € over budget`
+              : `${(totalBudget - totalSpent).toFixed(0)} € remaining`
+            }
+          </Text>
+          <View style={styles.progressBarContainer}>
+            <View style={[
+              styles.progressBar, 
+              { 
+                width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%`, 
+                backgroundColor: isOverBudget ? COLORS.warning : COLORS.success
+              }
+            ]} />
+          </View>
+        </View>
+        
+        {weeklyBasket.map((item) => {
+          const isItemOverBudget = item.spent > item.budget;
+          const itemProgressPercent = Math.min((item.spent / item.budget) * 100, 100);
+          
+          return (
+            <View key={item.id} style={[styles.statCard, theme.card]}>
+              <View style={styles.basketItemHeader}>
+                <View>
+                  <Text style={[styles.basketItemTitle, theme.text]}>{item.item}</Text>
+                  <View style={styles.categoryContainer}>
+                    <View style={[styles.categoryBadge, { 
+                      backgroundColor: getCategoryColor(item.category) 
+                    }]}>
+                      <Text style={styles.categoryText}>
+                        {getCategoryEmoji(item.category)} {item.category}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <TouchableOpacity style={[styles.miniButton, { 
+                  backgroundColor: isItemOverBudget ? COLORS.warning : COLORS.success 
+                }]}>
+                  <Plus color="white" size={16} />
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={[styles.basketAmount, theme.text, isItemOverBudget && { color: COLORS.warning }]}>
+                {item.spent} € / {item.budget} €
+              </Text>
+              
+              <Text style={[styles.basketStatus, theme.textSecondary]}>
+                {isItemOverBudget 
+                  ? `⚠️ Over by ${(item.spent - item.budget).toFixed(0)} €`
+                  : `✅ ${(item.budget - item.spent).toFixed(0)} € remaining`
+                }
+              </Text>
+              
+              <View style={styles.progressBarContainer}>
+                <View style={[
+                  styles.progressBar, 
+                  { 
+                    width: `${itemProgressPercent}%`, 
+                    backgroundColor: isItemOverBudget ? COLORS.warning : COLORS.success
+                  }
+                ]} />
+              </View>
+              
+              <View style={styles.progressLabels}>
+                <Text style={theme.textSecondary}>0 €</Text>
+                <Text style={theme.textSecondary}>{item.budget} €</Text>
+              </View>
+            </View>
+          );
+        })}
+
+        <TouchableOpacity style={[styles.addGoalButton, theme.card]}>
+          <Plus color={COLORS.primary} size={20} />
+          <Text style={[styles.addGoalText, { color: COLORS.primary }]}>Add Budget Category</Text>
+        </TouchableOpacity>
+        
+        {/* Weekly Insights */}
+        <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#1a2332' : '#f0f9ff' }]}>
+          <Text style={[styles.summaryTitle, theme.text]}>Weekly Insights</Text>
+          <View style={styles.insightsList}>
+            <Text style={[styles.insightItem, theme.textSecondary]}>
+              💡 Your biggest expense: {weeklyBasket.reduce((max, item) => item.spent > max.spent ? item : max).item}
+            </Text>
+            <Text style={[styles.insightItem, theme.textSecondary]}>
+              🎯 Best category: {weeklyBasket.filter(item => item.spent <= item.budget).length > 0 
+                ? weeklyBasket.filter(item => item.spent <= item.budget)[0].item 
+                : 'None on track'}
+            </Text>
+            <Text style={[styles.insightItem, theme.textSecondary]}>
+              📊 {Math.round((totalSpent / totalBudget) * 100)}% of weekly budget used
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Helper functions for categories
+  const getCategoryColor = (category) => {
+    const colors = {
+      food: '#f59e0b',
+      transport: '#3b82f6',
+      fun: '#ec4899',
+      shopping: '#10b981',
+      health: '#ef4444'
+    };
+    return colors[category] || COLORS.primary;
+  };
+
+  const getCategoryEmoji = (category) => {
+    const emojis = {
+      food: '🍔',
+      transport: '🚗',
+      fun: '🎉',
+      shopping: '🛍️',
+      health: '🏥'
+    };
+    return emojis[category] || '📦';
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return renderOverviewContent();
+      case 'expenses':
+        return renderExpensesContent();
+      case 'savings':
+        return renderSavingsContent();
+      case 'goals':
+        return renderGoalsContent();
+      case 'basket':
+        return renderWeeklyBasketContent();
+      default:
+        return renderOverviewContent();
+    }
+  };
+
   return (
-    <ScrollView style={[styles.container, theme.container]}>
+    <View style={[styles.container, theme.container]}>
       <StatusBar barStyle={darkMode ? "light-content" : "dark-content"} />
 
-      <View style={styles.header}>
-        <Text style={[styles.title, theme.text]}>
+      {/* Header */}
+      <View style={[styles.header, theme.card]}>
+        <View style={styles.headerTop}>
+          <Image 
+            source={require('../../../assets/money-management.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              style={styles.iconButton}
+              onPress={() => router.push('../commun/chat')}
+            >
+              <FontAwesome 
+                name="comments" 
+                size={24} 
+                color={darkMode ? '#f8fafc' : COLORS.primary} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.iconButton} 
+              onPress={() => setDarkMode(!darkMode)}
+            >
+              {darkMode ? <Sun color="#f8fafc" size={24} /> : <Moon color="#0f172a" size={24} />}
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={[styles.welcomeText, theme.text]}>
           Hello, {userInfo.firstName} 👋
         </Text>
-        <TouchableOpacity onPress={() => setDarkMode(!darkMode)}>
-          {darkMode ? <Sun color="white" /> : <Moon color="black" />}
-        </TouchableOpacity>
       </View>
 
       <Text style={theme.textSecondary}>Here's your financial overview for this month</Text>
-
-      <View style={styles.tabRow}>
-        {['overview', 'expenses', 'savings'].map((tab) => (
-          <Pressable
-            key={tab}
-            style={[styles.tabButton, activeTab === tab && theme.activeTab]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && theme.activeTabText]}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
 
       {/* Simple Tip Card */}
       <View style={[styles.tipCard, theme.card]}>
@@ -190,203 +649,125 @@ export default function Dashboard() {
         <Text style={theme.textSecondary}>{tips[activeTip]}</Text>
       </View>
 
-      {activeTab === 'overview' && (
-        <View style={styles.statsGrid}>
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Spent this month</Text>
-            <CreditCard color={COLORS.primary} />
-            <Text style={[styles.amount, theme.text]}>{budgetData.spent.toFixed(0)} €</Text>
-            <View style={styles.trendRow}>
-              <ArrowUpRight size={16} color={spentTrend > 0 ? COLORS.success : COLORS.warning} />
-              <Text style={{ color: spentTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
-                {Math.abs(spentTrend)}% {spentTrend > 0 ? 'less' : 'more'} than last month
-              </Text>
-            </View>
-          </View>
+      {/* Content Area */}
+      <ScrollView style={styles.contentArea} showsVerticalScrollIndicator={false}>
+        {renderContent()}
 
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Saved this month</Text>
-            <Wallet color={COLORS.success} />
-            <Text style={[styles.amount, theme.text]}>{budgetData.saved.toFixed(0)} €</Text>
-            <View style={styles.trendRow}>
-              <ArrowUpRight size={16} color={savedTrend > 0 ? COLORS.success : COLORS.warning} />
-              <Text style={{ color: savedTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
-                {Math.abs(savedTrend)}% {savedTrend > 0 ? 'more' : 'less'} than last month
-              </Text>
-            </View>
-          </View>
+        {/* Bouton pour actualiser les données */}
+        <TouchableOpacity 
+          style={[styles.refreshButton, theme.card]} 
+          onPress={loadBudgetData}
+        >
+          <Text style={theme.text}>🔄 Refresh Data</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Remaining Budget</Text>
-            <DollarSign color={budgetData.remaining >= 0 ? COLORS.success : COLORS.warning} />
-            <Text style={[styles.amount, theme.text, budgetData.remaining < 0 && { color: COLORS.warning }]}>
-              {budgetData.remaining.toFixed(0)} €
-            </Text>
-            <Text style={theme.textSecondary}>
-              {percentRemaining}% of monthly budget ({budgetData.budget.toFixed(0)} €)
-            </Text>
-            <View style={styles.progressBarContainer}>
-              <View style={[
-                styles.progressBar, 
-                { 
-                  width: `${Math.min(Math.abs(percentRemaining), 100)}%`, 
-                  backgroundColor: budgetData.remaining >= 0 ? COLORS.success : COLORS.warning 
-                }
-              ]} />
-            </View>
-            <View style={styles.progressLabels}>
-              <Text style={theme.textSecondary}>0 €</Text>
-              <Text style={theme.textSecondary}>{budgetData.budget.toFixed(0)} €</Text>
-            </View>
-          </View>
-        </View>
-      )}
+      {/* Bottom Navigation - Instagram Style */}
+      <View style={[styles.bottomNavigation, theme.card]}>
+        <TouchableOpacity
+          style={[styles.navItem, activeTab === 'overview' && styles.activeNavItem]}
+          onPress={() => setActiveTab('overview')}
+        >
+          <Home 
+            color={activeTab === 'overview' ? COLORS.primary : (darkMode ? '#cbd5e1' : '#475569')} 
+            size={24}
+          />
+          <Text style={[styles.navText, activeTab === 'overview' && { color: COLORS.primary }, theme.textSecondary]}>
+            Overview
+          </Text>
+        </TouchableOpacity>
 
-      {activeTab === 'expenses' && (
-        <View style={styles.statsGrid}>
-          <Text style={[styles.sectionTitle, theme.text]}>Expense Breakdown</Text>
-          
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Rent</Text>
-            <Text style={[styles.amount, theme.text]}>{expenseDetails.rent.toFixed(0)} €</Text>
-            <Text style={theme.textSecondary}>
-              {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100) : 0}% of total expenses
-            </Text>
-          </View>
+        <TouchableOpacity
+          style={[styles.navItem, activeTab === 'expenses' && styles.activeNavItem]}
+          onPress={() => setActiveTab('expenses')}
+        >
+          <TrendingUp 
+            color={activeTab === 'expenses' ? COLORS.primary : (darkMode ? '#cbd5e1' : '#475569')} 
+            size={24}
+          />
+          <Text style={[styles.navText, activeTab === 'expenses' && { color: COLORS.primary }, theme.textSecondary]}>
+            Expenses
+          </Text>
+        </TouchableOpacity>
 
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Food</Text>
-            <Text style={[styles.amount, theme.text]}>{expenseDetails.food.toFixed(0)} €</Text>
-            <Text style={theme.textSecondary}>
-              {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.food / budgetData.totalExpenses) * 100) : 0}% of total expenses
-            </Text>
-          </View>
+        <TouchableOpacity
+          style={[styles.navItem, activeTab === 'goals' && styles.activeNavItem]}
+          onPress={() => setActiveTab('goals')}
+        >
+          <Target 
+            color={activeTab === 'goals' ? COLORS.primary : (darkMode ? '#cbd5e1' : '#475569')} 
+            size={24}
+          />
+          <Text style={[styles.navText, activeTab === 'goals' && { color: COLORS.primary }, theme.textSecondary]}>
+            Goals
+          </Text>
+        </TouchableOpacity>
 
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Transport</Text>
-            <Text style={[styles.amount, theme.text]}>{expenseDetails.transport.toFixed(0)} €</Text>
-            <Text style={theme.textSecondary}>
-              {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.transport / budgetData.totalExpenses) * 100) : 0}% of total expenses
-            </Text>
-          </View>
+        <TouchableOpacity
+          style={[styles.navItem, activeTab === 'basket' && styles.activeNavItem]}
+          onPress={() => setActiveTab('basket')}
+        >
+          <ShoppingBasket 
+            color={activeTab === 'basket' ? COLORS.primary : (darkMode ? '#cbd5e1' : '#475569')} 
+            size={24}
+          />
+          <Text style={[styles.navText, activeTab === 'basket' && { color: COLORS.primary }, theme.textSecondary]}>
+            Weekly
+          </Text>
+        </TouchableOpacity>
 
-          {expenseDetails.tuitionAmount > 0 && (
-            <View style={[styles.statCard, theme.card]}>
-              <Text style={theme.textSecondary}>Tuition Income</Text>
-              <Text style={[styles.amount, theme.text, { color: COLORS.success }]}>
-                {expenseDetails.tuitionAmount.toFixed(0)} €
-              </Text>
-              <Text style={theme.textSecondary}>Additional income</Text>
-            </View>
-            
-          )}
-
-          <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#2d1b69' : '#f0f4ff' }]}>
-            <Text style={theme.textSecondary}>Total Monthly Expenses</Text>
-            <Text style={[styles.amount, theme.text]}>{budgetData.totalExpenses.toFixed(0)} €</Text>
-            <Text style={theme.textSecondary}>
-              {budgetData.budget > 0 ? percentSpent : 0}% of budget used
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[styles.viewMoreButton, theme.card]}
-            onPress={() => router.push('/expenses')}
-          >
-            <Text style={theme.text}>Voir plus →</Text>
-          </TouchableOpacity>
-        </View>
-
-        
-      )}
-
-      {activeTab === 'savings' && (
-        <View style={styles.statsGrid}>
-          <Text style={[styles.sectionTitle, theme.text]}>Savings Overview</Text>
-          
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>This Month's Savings</Text>
-            <Wallet color={COLORS.success} />
-            <Text style={[styles.amount, theme.text, { color: COLORS.success }]}>
-              {budgetData.saved.toFixed(0)} €
-            </Text>
-            <Text style={theme.textSecondary}>
-              {budgetData.budget > 0 ? Math.round((budgetData.saved / budgetData.budget) * 100) : 0}% of income saved
-            </Text>
-          </View>
-
-          <View style={[styles.statCard, theme.card]}>
-            <Text style={theme.textSecondary}>Savings Goal Progress</Text>
-            <Text style={[styles.amount, theme.text]}>
-              {Math.round((budgetData.saved / (budgetData.budget * 0.2)) * 100)}% 
-            </Text>
-            <Text style={theme.textSecondary}>
-              Goal: 20% of income ({(budgetData.budget * 0.2).toFixed(0)} €)
-            </Text>
-            <View style={styles.progressBarContainer}>
-              <View style={[
-                styles.progressBar, 
-                { 
-                  width: `${Math.min((budgetData.saved / (budgetData.budget * 0.2)) * 100, 100)}%`, 
-                  backgroundColor: COLORS.success 
-                }
-              ]} />
-            </View>
-          </View>
-
-          {budgetData.remaining < 0 && (
-            <View style={[styles.statCard, theme.card, { backgroundColor: darkMode ? '#4a1d1d' : '#fff5f5' }]}>
-              <Text style={[theme.textSecondary, { color: COLORS.warning }]}>Budget Alert</Text>
-              <Text style={[styles.amount, { color: COLORS.warning }]}>
-                {Math.abs(budgetData.remaining).toFixed(0)} € over budget
-              </Text>
-              <Text style={theme.textSecondary}>Consider reducing expenses next month</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Bouton pour actualiser les données */}
-      <TouchableOpacity 
-        style={[styles.refreshButton, theme.card]} 
-        onPress={loadBudgetData}
-      >
-        <Text style={theme.text}>🔄 Refresh Data</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={[styles.navItem, activeTab === 'savings' && styles.activeNavItem]}
+          onPress={() => setActiveTab('savings')}
+        >
+          <Wallet 
+            color={activeTab === 'savings' ? COLORS.primary : (darkMode ? '#cbd5e1' : '#475569')} 
+            size={24}
+          />
+          <Text style={[styles.navText, activeTab === 'savings' && { color: COLORS.primary }, theme.textSecondary]}>
+            Savings
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    width: '100%',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
     marginBottom: 10,
   },
-  title: {
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingLeft: 0,
+  },
+  logo: {
+    width: 150,
+    height: 40,
+    tintColor: COLORS.primary,
+    marginLeft: -5,
+  },
+  welcomeText: {
     fontSize: 24,
-    fontWeight: "bold",
-  },
-  tabRow: {
-    flexDirection: "row",
-    marginVertical: 10,
-  },
-  tabButton: {
-    padding: 10,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  tabText: {
-    fontWeight: "600",
+    fontWeight: 'bold',
+    marginTop: 5,
   },
   tipCard: {
     padding: 16,
     borderRadius: 12,
     marginVertical: 20,
+    marginHorizontal: 20,
   },
   tipHeader: {
     flexDirection: "row",
@@ -394,8 +775,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 10,
   },
+  contentArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
   statsGrid: {
     gap: 15,
+    paddingBottom: 20,
   },
   statCard: {
     padding: 16,
@@ -438,6 +824,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 30,
+  },
+  viewMoreButton: {
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  
+  goalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  goalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  addGoalButton: {
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#cbd5e1',
+  },
+  
+  basketItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  basketItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  categoryText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  
+  bottomNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    paddingVertical: 8,
+  },
+  activeNavItem: {
+    
+  },
+  navText: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '500',
   },
   light: {
     container: {
@@ -494,5 +949,37 @@ const styles = StyleSheet.create({
     activeTabText: {
       color: "white",
     },
+  },
+  overviewHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 10,
+    paddingRight: 10,
+  },
+  chatbotCard: {
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    marginBottom: 20,
+  },
+  chatbotContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chatbotText: {
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+    marginRight: 15,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  iconButton: {
+    padding: 5,
   },
 });
