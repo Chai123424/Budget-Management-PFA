@@ -26,6 +26,20 @@ export default function Formulaire({ darkMode, toggleTheme }) {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Initialize form with existing user data
+  useEffect(() => {
+    const currentUser = localStorage.getItem("currentUser")
+    if (currentUser) {
+      const userData = JSON.parse(currentUser)
+      setFormData(prev => ({
+        ...prev,
+        email: userData.email || "",
+        firstName: userData.name?.split(' ')[0] || "",
+        lastName: userData.name?.split(' ').slice(1).join(' ') || ""
+      }))
+    }
+  }, [])
+
   // Sync with app's dark mode
   useEffect(() => {
     if (darkMode) {
@@ -103,44 +117,87 @@ export default function Formulaire({ darkMode, toggleTheme }) {
   }
 
   const handleSubmit = async () => {
+    if (!validateStep()) {
+      return
+    }
+
     try {
-      setIsSubmitting(true);
+      setIsSubmitting(true)
       
-      // Prepare form data from state
-      const submissionData = {
-        lastName: formData.lastName,
+      // Get current user data
+      const currentUserData = localStorage.getItem("currentUser")
+      const currentUser = currentUserData ? JSON.parse(currentUserData) : {}
+      
+      // Prepare complete user profile
+      const completeUserProfile = {
+        ...currentUser,
+        // Personal information
         firstName: formData.firstName,
-        age: formData.age,
+        lastName: formData.lastName,
+        fullName: `${formData.firstName} ${formData.lastName}`,
+        age: parseInt(formData.age),
         email: formData.email,
         university: formData.university,
+        
+        // Budget information
         budget: {
-          monthly: formData.budget,
-          tuition: formData.hasTuition === "yes" ? formData.tuitionAmount : "0",
+          monthly: parseFloat(formData.budget),
+          hasTuition: formData.hasTuition === "yes",
+          tuitionAmount: formData.hasTuition === "yes" ? parseFloat(formData.tuitionAmount) : 0,
           expenses: {
-            rent: formData.rent,
-            food: formData.food,
-            transportation: formData.transport
-          }
-        }
-      };
-  
-      // Save to localStorage
-      localStorage.setItem('userProfile', JSON.stringify(submissionData));
+            rent: parseFloat(formData.rent),
+            food: parseFloat(formData.food),
+            transportation: parseFloat(formData.transport),
+            total: parseFloat(formData.rent) + parseFloat(formData.food) + parseFloat(formData.transport)
+          },
+          remainingBudget: (
+            parseFloat(formData.budget) + 
+            (formData.hasTuition === "yes" ? parseFloat(formData.tuitionAmount) : 0) - 
+            (parseFloat(formData.rent) + parseFloat(formData.food) + parseFloat(formData.transport))
+          )
+        },
+        
+        // Metadata
+        isProfileComplete: true,
+        profileCompletedAt: new Date().toISOString(),
+        registrationStep: 'completed'
+      }
+
+      // Update user in "database"
+      const users = JSON.parse(localStorage.getItem('usersDB') || '[]')
+      const userIndex = users.findIndex(user => user.email === currentUser.email)
       
-      // Mark registration as complete
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.removeItem('pendingSignup'); // Clear the pending signup flag
-  
-      // Force a full page reload to ensure auth state is properly initialized
-      window.location.href = '/dashboard';
+      if (userIndex !== -1) {
+        users[userIndex] = { ...users[userIndex], ...completeUserProfile }
+        localStorage.setItem('usersDB', JSON.stringify(users))
+      }
+
+      // Save complete profile
+      localStorage.setItem('currentUser', JSON.stringify(completeUserProfile))
+      localStorage.setItem('userProfile', JSON.stringify(completeUserProfile))
+      
+      // Mark as authenticated and remove pending signup
+      localStorage.setItem('isAuthenticated', 'true')
+      localStorage.removeItem('pendingSignup')
+      
+      console.log('Profile completed successfully:', completeUserProfile)
+      
+      // Show success message briefly
+      setSaveMessage("Profile completed successfully! Redirecting to dashboard...")
+      
+      // Delay navigation slightly to show success message
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true })
+      }, 1500)
       
     } catch (error) {
-      console.error('Submission error:', error);
-      alert('Error submitting form. Please try again.');
+      console.error('Submission error:', error)
+      setErrors({ general: 'Error completing profile. Please try again.' })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
+
   return (
     <div className={`budget-form-container ${darkMode ? "budget-form-dark" : "budget-form-light"}`}>
       {/* Theme toggle button */}
@@ -159,7 +216,7 @@ export default function Formulaire({ darkMode, toggleTheme }) {
       </header>
 
       <div className="budget-form-content">
-        <h1 className="budget-form-main-title">BUDGET FORM</h1>
+        <h1 className="budget-form-main-title">SIMPLIFY FORM</h1>
 
         {/* Step indicator */}
         <div className="budget-form-step-indicator">
@@ -171,6 +228,7 @@ export default function Formulaire({ darkMode, toggleTheme }) {
         </div>
 
         {saveMessage && <div className="budget-form-save-message">{saveMessage}</div>}
+        {errors.general && <div className="budget-form-error-message budget-form-general-error">{errors.general}</div>}
 
         {step === 1 && (
           <>
@@ -207,19 +265,21 @@ export default function Formulaire({ darkMode, toggleTheme }) {
               <div className="budget-form-row">
                 <label htmlFor="age">Age</label>
                 <input
-                  type="text"
+                  type="number"
                   id="age"
                   name="age"
                   value={formData.age}
                   onChange={handleChange}
                   className={errors.age ? "budget-form-error" : ""}
+                  min="16"
+                  max="100"
                 />
                 {errors.age && <span className="budget-form-error-message">{errors.age}</span>}
               </div>
               <div className="budget-form-row budget-form-right">
                 <label htmlFor="email">Email</label>
                 <input
-                  type="text"
+                  type="email"
                   id="email"
                   name="email"
                   value={formData.email}
@@ -261,18 +321,19 @@ export default function Formulaire({ darkMode, toggleTheme }) {
           <>
             <h2 className="budget-form-section-title">Budget Information</h2>
 
-            <fieldset className="budget-form-main-fieldset">
-              <legend>Student Budget</legend>
+            
 
               <div className="budget-form-row">
-                <label htmlFor="budget">{"What's your monthly budget? (€)"}</label>
+                <label htmlFor="budget">{"What's your monthly budget? (DH)"}</label>
                 <input
-                  type="text"
+                  type="number"
                   id="budget"
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
                   className={errors.budget ? "budget-form-error" : ""}
+                  min="0"
+                  step="0.01"
                 />
                 {errors.budget && <span className="budget-form-error-message">{errors.budget}</span>}
               </div>
@@ -307,14 +368,16 @@ export default function Formulaire({ darkMode, toggleTheme }) {
 
               {formData.hasTuition === "yes" && (
                 <div className="budget-form-row budget-form-slide-in">
-                  <label htmlFor="tuitionAmount">How much do you earn? (€)</label>
+                  <label htmlFor="tuitionAmount">How much do you earn? (DH)</label>
                   <input
-                    type="text"
+                    type="number"
                     id="tuitionAmount"
                     name="tuitionAmount"
                     value={formData.tuitionAmount}
                     onChange={handleChange}
                     className={errors.tuitionAmount ? "budget-form-error" : ""}
+                    min="0"
+                    step="0.01"
                   />
                   {errors.tuitionAmount && <span className="budget-form-error-message">{errors.tuitionAmount}</span>}
                 </div>
@@ -324,45 +387,51 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 <legend>Monthly Expenses</legend>
 
                 <div className="budget-form-row">
-                  <label htmlFor="rent">How much do you spend on rent? (€)</label>
+                  <label htmlFor="rent">How much do you spend on rent? (DH)</label>
                   <input
-                    type="text"
+                    type="number"
                     id="rent"
                     name="rent"
                     value={formData.rent}
                     onChange={handleChange}
                     className={errors.rent ? "budget-form-error" : ""}
+                    min="0"
+                    step="0.01"
                   />
                   {errors.rent && <span className="budget-form-error-message">{errors.rent}</span>}
                 </div>
 
                 <div className="budget-form-row">
-                  <label htmlFor="food">How much do you spend on food? (€)</label>
+                  <label htmlFor="food">How much do you spend on food? (DH)</label>
                   <input
-                    type="text"
+                    type="number"
                     id="food"
                     name="food"
                     value={formData.food}
                     onChange={handleChange}
                     className={errors.food ? "budget-form-error" : ""}
+                    min="0"
+                    step="0.01"
                   />
                   {errors.food && <span className="budget-form-error-message">{errors.food}</span>}
                 </div>
 
                 <div className="budget-form-row">
-                  <label htmlFor="transport">How much do you spend on transportation? (€)</label>
+                  <label htmlFor="transport">How much do you spend on transportation? (DH)</label>
                   <input
-                    type="text"
+                    type="number"
                     id="transport"
                     name="transport"
                     value={formData.transport}
                     onChange={handleChange}
                     className={errors.transport ? "budget-form-error" : ""}
+                    min="0"
+                    step="0.01"
                   />
                   {errors.transport && <span className="budget-form-error-message">{errors.transport}</span>}
                 </div>
               </fieldset>
-            </fieldset>
+            
 
             <div className="budget-form-buttons">
               <button type="button" className="budget-form-button-prev" onClick={prevStep}>
@@ -415,7 +484,7 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 <h3 className="budget-form-summary-title">Budget Information</h3>
                 <div className="budget-form-summary-row">
                   <span className="budget-form-summary-label">Monthly Budget:</span>
-                  <span className="budget-form-summary-value">{formData.budget} €</span>
+                  <span className="budget-form-summary-value">{formData.budget} DH</span>
                 </div>
                 <div className="budget-form-summary-row">
                   <span className="budget-form-summary-label">Has Tuition:</span>
@@ -424,7 +493,7 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 {formData.hasTuition === "yes" && (
                   <div className="budget-form-summary-row">
                     <span className="budget-form-summary-label">Tuition Amount:</span>
-                    <span className="budget-form-summary-value">{formData.tuitionAmount} €</span>
+                    <span className="budget-form-summary-value">{formData.tuitionAmount} DH</span>
                   </div>
                 )}
               </div>
@@ -433,15 +502,15 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 <h3 className="budget-form-summary-title">Monthly Expenses</h3>
                 <div className="budget-form-summary-row">
                   <span className="budget-form-summary-label">Rent:</span>
-                  <span className="budget-form-summary-value">{formData.rent} €</span>
+                  <span className="budget-form-summary-value">{formData.rent} DH</span>
                 </div>
                 <div className="budget-form-summary-row">
                   <span className="budget-form-summary-label">Food:</span>
-                  <span className="budget-form-summary-value">{formData.food} €</span>
+                  <span className="budget-form-summary-value">{formData.food} DH</span>
                 </div>
                 <div className="budget-form-summary-row">
                   <span className="budget-form-summary-label">Transportation:</span>
-                  <span className="budget-form-summary-value">{formData.transport} €</span>
+                  <span className="budget-form-summary-value">{formData.transport} DH</span>
                 </div>
               </div>
 
@@ -449,32 +518,32 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 <div className="budget-form-summary-row budget-form-total">
                   <span className="budget-form-summary-label">Total Expenses:</span>
                   <span className="budget-form-summary-value">
-                    {Number.parseFloat(formData.rent || 0) +
-                      Number.parseFloat(formData.food || 0) +
-                      Number.parseFloat(formData.transport || 0)}{" "}
-                    €
+                    {(parseFloat(formData.rent || 0) +
+                      parseFloat(formData.food || 0) +
+                      parseFloat(formData.transport || 0)).toFixed(2)}{" "}
+                    DH
                   </span>
                 </div>
                 <div className="budget-form-summary-row budget-form-balance">
                   <span className="budget-form-summary-label">Remaining Budget:</span>
                   <span
                     className={`budget-form-summary-value ${
-                      Number.parseFloat(formData.budget || 0) +
-                        Number.parseFloat(formData.hasTuition === "yes" ? formData.tuitionAmount || 0 : 0) -
-                        (Number.parseFloat(formData.rent || 0) +
-                          Number.parseFloat(formData.food || 0) +
-                          Number.parseFloat(formData.transport || 0)) >=
+                      parseFloat(formData.budget || 0) +
+                        parseFloat(formData.hasTuition === "yes" ? formData.tuitionAmount || 0 : 0) -
+                        (parseFloat(formData.rent || 0) +
+                          parseFloat(formData.food || 0) +
+                          parseFloat(formData.transport || 0)) >=
                       0
                         ? "budget-form-positive"
                         : "budget-form-negative"
                     }`}
                   >
-                    {Number.parseFloat(formData.budget || 0) +
-                      Number.parseFloat(formData.hasTuition === "yes" ? formData.tuitionAmount || 0 : 0) -
-                      (Number.parseFloat(formData.rent || 0) +
-                        Number.parseFloat(formData.food || 0) +
-                        Number.parseFloat(formData.transport || 0))}{" "}
-                    €
+                    {(parseFloat(formData.budget || 0) +
+                      parseFloat(formData.hasTuition === "yes" ? formData.tuitionAmount || 0 : 0) -
+                      (parseFloat(formData.rent || 0) +
+                        parseFloat(formData.food || 0) +
+                        parseFloat(formData.transport || 0))).toFixed(2)}{" "}
+                    DH
                   </span>
                 </div>
               </div>
@@ -493,12 +562,31 @@ export default function Formulaire({ darkMode, toggleTheme }) {
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting ? "Submitting..." : "Complete Profile"}
               </button>
             </div>
           </>
         )}
       </div>
+
+      {/* Debug info - à supprimer en production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          bottom: '10px',
+          right: '10px',
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '10px',
+          fontSize: '12px',
+          borderRadius: '5px',
+          maxWidth: '200px'
+        }}>
+          <div>Pending Signup: {localStorage.getItem("pendingSignup")}</div>
+          <div>Is Authenticated: {localStorage.getItem("isAuthenticated")}</div>
+          <div>Current User: {localStorage.getItem("currentUser") ? "✓" : "✗"}</div>
+        </div>
+      )}
     </div>
   )
 }

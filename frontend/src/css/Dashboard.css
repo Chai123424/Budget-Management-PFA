@@ -100,8 +100,94 @@
     radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.05), transparent 40%),
     radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03), transparent 60%);
 }
+/* Hide scrollbars globally while keeping scroll functionality */
 
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* Alternative approach - make scrollbars invisible but functional */
+/* Uncomment this section if the above doesn't work properly */
+/*
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+*/
+
+/* Ensure specific elements maintain hidden scrollbars */
+.dbNav {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.dbNav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.dbTabNav {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.dbTabNav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.dbSearchResults {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.dbSearchResults::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* Hide scrollbars for the main content area */
+.dbContent {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.dbContent::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* Hide scrollbars for the entire body and html */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
 /* Sidebar */
+
 .dbSidebar {
   width: 280px;
   display: flex;

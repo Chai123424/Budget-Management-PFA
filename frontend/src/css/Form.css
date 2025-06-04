@@ -36,7 +36,7 @@ body.dark-mode {
 
 /* Dark mode container */
 .budget-form-container.budget-form-dark {
-  background-color: #2d2d2d;
+  background-color: #212121;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   color: #e0e0e0;
 }
@@ -79,7 +79,7 @@ body.dark-mode {
 }
 
 .budget-form-dark .budget-form-header {
-  background-color: #4a4a6a;
+  background-color: #212121;
 }
 
 .budget-form-header img {
@@ -100,7 +100,7 @@ body.dark-mode {
 }
 
 .budget-form-dark .budget-form-main-title {
-  color: #9f75eb;
+  color: #7b68ee;
 }
 
 /* Save message */
@@ -165,7 +165,7 @@ body.dark-mode {
 }
 
 .budget-form-dark .budget-form-step-text.budget-form-active {
-  background-color: #9f75eb;
+  background-color: #7b68ee;
   color: white;
 }
 
@@ -361,7 +361,7 @@ body.dark-mode {
 
 .budget-form-dark .budget-form-button-next,
 .budget-form-dark .budget-form-button-submit {
-  background-color: #9f75eb;
+  background-color: #7b68ee;
 }
 
 .budget-form-dark .budget-form-button-next:hover,

@@ -217,7 +217,7 @@ export default function Dashboard() {
     return (
       <>
         <div className="dbWelcome">
-          <h2>Hello, Chai 👋</h2>
+          <h2>Hello, Student 👋</h2>
           <p>Here's your financial overview for May</p>
         </div>
 
@@ -343,13 +343,13 @@ export default function Dashboard() {
             </div>
             <div 
               className="dbAiServiceItem" 
-              onClick={() => handleTabChange("weekly-basket")}
+              onClick={() => handleTabChange("Smart-cart")}
             >
               <div className="dbAiServiceIcon dbGreen">
                 <ShoppingBasket size={24} />
               </div>
               <div className="dbAiServiceContent">
-                 <h4>Weekly Basket</h4>
+                 <h4>Smart cart </h4>
                 <p>Discover optimized shopping baskets to save on your groceries</p>
               </div>
               <ChevronRight size={20} className="dbAiServiceArrow" />
@@ -486,7 +486,7 @@ export default function Dashboard() {
               <li className={activeTab === "weekly-basket" ? "dbActive" : ""}>
                 <button onClick={() => handleTabChange("weekly-basket")}>
                   <ShoppingBasket size={20} />
-                  <span>Weekly Basket</span>
+                  <span>Smart cart</span>
                 </button>
               </li>
               <li className={activeTab === "grocery-map" ? "dbActive" : ""}>
@@ -523,8 +523,8 @@ export default function Dashboard() {
               <User size={20} />
             </div>
             <div>
-              <p className="dbUserName">Jean Dupont</p>
-              <p className="dbUserEmail">jean.dupont@example.com</p>
+              <p className="dbUserName">Faiz Chaimae</p>
+              <p className="dbUserEmail">chaimaefaiz24@gmail.com</p>
             </div>
           </div>
         </div>
