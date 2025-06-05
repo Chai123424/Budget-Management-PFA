@@ -32,6 +32,7 @@ import Expenses from "./Expenses";
 import Savings from "./Savings";
 import GoalsPage  from "./Goals";
 import GroceryMap from "./GroceryMap";
+import SmartCart from "./SmartCart";
 
 
 export default function Dashboard() {
@@ -173,7 +174,13 @@ export default function Dashboard() {
           </div>
         )
       case "ai-advisor":
-      case "weekly-basket":
+        return renderComingSoon(activeTab)
+      case "Smart-Cart":
+        return (
+          <div className="content-page">
+            <SmartCart darkMode={darkMode} />
+          </div>
+        )
       case "reports":
       case "calendar":
         return renderComingSoon(activeTab)
@@ -484,7 +491,7 @@ export default function Dashboard() {
                 </button>
               </li>
               <li className={activeTab === "weekly-basket" ? "dbActive" : ""}>
-                <button onClick={() => handleTabChange("weekly-basket")}>
+                <button onClick={() => handleTabChange("Smart-Cart")}>
                   <ShoppingBasket size={20} />
                   <span>Smart cart</span>
                 </button>

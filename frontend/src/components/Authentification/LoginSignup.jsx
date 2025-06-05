@@ -142,8 +142,12 @@ const LoginSignup = () => {
           localStorage.removeItem("isAuthenticated")
           localStorage.removeItem("pendingSignup")
           
-          // Set new signup state
+          // Set new signup state with consistent key names
           localStorage.setItem("pendingSignup", "true")
+          localStorage.setItem("currentUser", JSON.stringify({
+            name: formData.name,
+            email: formData.email
+          }))
           localStorage.setItem("userData", JSON.stringify({
             name: formData.name,
             email: formData.email
@@ -159,13 +163,18 @@ const LoginSignup = () => {
           // Navigate to form page
           navigate("/form", { replace: true })
         } else {
+          // LOGIN CASE
           // Clear any previous signup state
           localStorage.removeItem("pendingSignup")
           
-          // Set authenticated state
+          // Set authenticated state with consistent key names
           localStorage.setItem("isAuthenticated", "true")
-          localStorage.setItem("userData", JSON.stringify({
+          localStorage.setItem("currentUser", JSON.stringify({
             name: formData.name || "User", // Fallback for login
+            email: formData.email
+          }))
+          localStorage.setItem("userData", JSON.stringify({
+            name: formData.name || "User",
             email: formData.email
           }))
           
@@ -176,8 +185,11 @@ const LoginSignup = () => {
             password: ""
           })
           
-          // Navigate to dashboard
-          navigate("/dashboard", { replace: true })
+          // Force a small delay to ensure localStorage is set
+          setTimeout(() => {
+            // Navigate to dashboard
+            navigate("/dashboard", { replace: true })
+          }, 100)
         }
       } catch (error) {
         console.error("Authentication error:", error)
@@ -186,7 +198,7 @@ const LoginSignup = () => {
     }
     setIsSubmitting(false)
   }
-
+  
   const handlePasswordReset = async () => {
     if (validateEmail(formData.email)) {
       setIsSubmitting(true)
