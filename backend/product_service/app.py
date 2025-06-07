@@ -8,6 +8,10 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
+ALLOWED_FOOD_GROUPS = ["dairy", "vegetables", "protein", "carbs", "condiments", "fruits"]
+ALLOWED_PRICE_CATEGORIES = ["very_cheap", "cheap"]
+STUDENT_MAX_PRICE = 25
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -58,6 +62,68 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 app.json_encoder = JSONEncoder
+
+
+def classify_price_category(price):
+    """Classify price into categories for student budget"""
+    if price <= 8:
+        return "very_cheap"
+    elif price <= 15:
+        return "cheap"
+    elif price <= 25:
+        return "moderate"
+    else:
+        return "expensive"
+
+
+def enhanced_format_product_for_frontend(product):
+    """Enhanced product formatting with price categories and filtering"""
+    price = float(product.get('price', 0))
+    food_group = product.get('food_group', '').lower()
+    category = product.get('category', '').lower()
+    
+    # Use food_group if available, otherwise try to map category
+    final_food_group = food_group if food_group else category
+    
+    # Classify price category
+    price_category = classify_price_category(price)
+    
+    formatted_product = {
+        '_id': str(product['_id']),
+        'product_name': product.get('name', ''),
+        'price': price,
+        'category': product.get('category', '').title(),
+        'brand_name': extract_brand_from_name(product.get('name', '')),
+        'food_group': final_food_group,
+        'image_url': product.get('image_url', ''),
+        'description': product.get('description', ''),
+        'extracted_quantity': product.get('extracted_quantity', 0),
+        'extracted_unit': product.get('extracted_unit', ''),
+        'price_per_unit': product.get('price_per_unit', 0),
+        'price_category': price_category,
+        'is_organic': product.get('is_organic', False),
+        'is_premium': product.get('is_premium', False),
+        'is_local': product.get('is_local', False),
+        'student_friendly': price <= STUDENT_MAX_PRICE and price_category in ALLOWED_PRICE_CATEGORIES
+    }
+    
+    return formatted_product
+
+
+def filter_student_products(products):
+    """Filter products for student budget and requirements"""
+    filtered = []
+    for product in products:
+        formatted = enhanced_format_product_for_frontend(product)
+        
+        # Apply student-friendly filters
+        if (formatted['student_friendly'] and 
+            formatted['food_group'] in ALLOWED_FOOD_GROUPS and
+            formatted['price'] > 0):
+            filtered.append(formatted)
+    
+    return filtered
+
 
 def extract_brand_from_name(product_name):
     """Extract brand name from product name"""
@@ -131,6 +197,7 @@ def get_products():
         
         search = request.args.get('search', '')
         category = request.args.get('category', '')
+        student_filter = request.args.get('student_filter', 'true').lower() == 'true'
         limit = int(request.args.get('limit', 50))
         
         query = {}
@@ -146,26 +213,81 @@ def get_products():
         if category and category != 'all':
             query['category'] = {'$regex': category, '$options': 'i'}
         
+        # Add price filter for student budget
+        if student_filter:
+            query['price'] = {'$lte': STUDENT_MAX_PRICE, '$gt': 0}
+        
         logger.info(f"Searching products with query: {query}")
         
         # Fetch products from database
-        products = list(products_collection.find(query).limit(limit))
+        products = list(products_collection.find(query).limit(limit * 2))  # Fetch more to account for filtering
         
-        logger.info(f"Found {len(products)} products")
+        logger.info(f"Found {len(products)} products from database")
         
-        # Format products for frontend
-        formatted_products = [format_product_for_frontend(product) for product in products]
+        # Apply student filtering if requested
+        if student_filter:
+            formatted_products = filter_student_products(products)
+        else:
+            formatted_products = [enhanced_format_product_for_frontend(product) for product in products]
+        
+        # Limit final results
+        formatted_products = formatted_products[:limit]
         
         return jsonify({
             'products': formatted_products,
             'total': len(formatted_products),
-            'query_used': query
+            'query_used': query,
+            'student_filtered': student_filter,
+            'allowed_food_groups': ALLOWED_FOOD_GROUPS if student_filter else None,
+            'allowed_price_categories': ALLOWED_PRICE_CATEGORIES if student_filter else None
         })
         
     except Exception as e:
         logger.error(f"Error fetching products: {e}", exc_info=True)
         return jsonify({'error': f'Failed to fetch products: {str(e)}'}), 500
+    
 
+
+@app.route('/api/student/config', methods=['GET'])
+def get_student_config():
+    """Get student-specific configuration"""
+    return jsonify({
+        'allowed_food_groups': ALLOWED_FOOD_GROUPS,
+        'allowed_price_categories': ALLOWED_PRICE_CATEGORIES,
+        'max_price': STUDENT_MAX_PRICE,
+        'currency_symbol': 'DH'
+    })
+
+
+
+@app.route('/api/student/popular', methods=['GET'])
+def get_student_popular_products():
+    """Get popular products filtered for student budget"""
+    try:
+        if products_collection is None:
+            return jsonify({'error': 'Database connection not available'}), 500
+        
+        # Get products within student budget
+        pipeline = [
+            {'$match': {'price': {'$lte': STUDENT_MAX_PRICE, '$gt': 0}}},
+            {'$sample': {'size': 20}}
+        ]
+        
+        popular_products = list(products_collection.aggregate(pipeline))
+        
+        # Apply student filtering
+        filtered_products = filter_student_products(popular_products)
+        
+        return jsonify({
+            'popular_products': filtered_products[:15],
+            'total': len(filtered_products)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching student popular products: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to fetch popular products'}), 500
+    
+    
 @app.route('/api/products/<product_id>', methods=['GET'])
 def get_product(product_id):
     """Get a specific product by ID"""

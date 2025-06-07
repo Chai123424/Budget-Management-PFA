@@ -17,14 +17,18 @@ import {
   Search,
   Loader,
   RefreshCw,
+  Trash2,
+  X,
 } from "lucide-react"
 import "../css/SmartCart.css"
 
 const SmartCart = ({ darkMode = true }) => {
-  // Constants
+  // Constants - moved from backend to frontend
   const CURRENCY_SYMBOL = "DH";
-  const STUDENT_MAX_PRICE = 25; // 250 DH instead of $25
+  const STUDENT_MAX_PRICE = 50; 
   const PRODUCT_SERVICE_URL = process.env.NEXT_PUBLIC_PRODUCT_SERVICE_URL || "http://localhost:5002/api"
+  const ALLOWED_FOOD_GROUPS = ["dairy", "vegetables", "protein", "carbs", "condiments", "fruits"];
+  const ALLOWED_PRICE_CATEGORIES = ["very_cheap", "cheap"];
 
   // State
   const [selectedWeek, setSelectedWeek] = useState("current")
@@ -43,6 +47,7 @@ const SmartCart = ({ darkMode = true }) => {
   const [basketProducts, setBasketProducts] = useState([])
   const [debugInfo, setDebugInfo] = useState({})
   const [isUsingMockData, setIsUsingMockData] = useState(false)
+  const [removedOriginalItems, setRemovedOriginalItems] = useState({})
 
   // Product helpers
   const getProductName = (product) => {
@@ -57,6 +62,10 @@ const SmartCart = ({ darkMode = true }) => {
     return product.category || product.food_group || "Other"
   }
 
+  const getProductFoodGroup = (product) => {
+    return product.food_group || product.category || "other"
+  }
+
   // Enhanced product filtering
   const filterStudentFriendlyProducts = (productList) => {
     if (!productList || !Array.isArray(productList)) return []
@@ -69,38 +78,15 @@ const SmartCart = ({ darkMode = true }) => {
 
   // More diversified product selection
   const getDiverseProducts = (productList, maxCount = 15) => {
-    const studentProducts = filterStudentFriendlyProducts(productList)
-    if (studentProducts.length === 0) return []
-
-    // Group by category
-    const productsByCategory = {}
-    studentProducts.forEach(product => {
-      const category = getProductCategory(product).toLowerCase()
-      if (!productsByCategory[category]) {
-        productsByCategory[category] = []
-      }
-      productsByCategory[category].push(product)
-    })
-
-    // Get balanced selection from each category
-    const categories = Object.keys(productsByCategory)
-    const productsPerCategory = Math.ceil(maxCount / categories.length)
-    
-    let diverseProducts = []
-    
-    categories.forEach(category => {
-      const categoryProducts = productsByCategory[category]
-        .sort((a, b) => getProductPrice(a) - getProductPrice(b))
-        .slice(0, productsPerCategory)
-      
-      diverseProducts = [...diverseProducts, ...categoryProducts]
-    })
-
-    // Shuffle and limit
-    return diverseProducts
+    if (!productList || productList.length === 0) return []
+  
+    // Products are already filtered and diverse from backend
+    // Just shuffle and limit
+    return productList
       .sort(() => Math.random() - 0.5)
       .slice(0, maxCount)
   }
+  
 
   // API calls
   const fetchProducts = async () => {
@@ -108,26 +94,31 @@ const SmartCart = ({ darkMode = true }) => {
     setError(null)
     
     try {
-      const response = await fetch(`${PRODUCT_SERVICE_URL}/products`, {
+      // Use backend filtering instead of frontend filtering
+      const response = await fetch(`${PRODUCT_SERVICE_URL}/products?student_filter=true&limit=100`, {
         headers: { "Content-Type": "application/json" },
       })
-
+  
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-
+  
       const data = await response.json()
       const receivedProducts = data.products || data
-
+  
       if (!Array.isArray(receivedProducts)) {
         throw new Error("Invalid products data format")
       }
-
+  
+      // Products are already filtered by backend
       setDebugInfo({
-        status: receivedProducts.length ? "success" : "empty_database",
-        message: receivedProducts.length ? "Products loaded" : "Empty database",
-        productCount: receivedProducts.length,
-        sampleProduct: receivedProducts[0]
+        status: receivedProducts.length ? "success" : "empty_filtered",
+        message: receivedProducts.length ? "Backend filtered products loaded" : "No products match criteria",
+        totalCount: receivedProducts.length,
+        sampleProduct: receivedProducts[0],
+        allowedFoodGroups: data.allowed_food_groups || ALLOWED_FOOD_GROUPS,
+        allowedPriceCategories: data.allowed_price_categories || ALLOWED_PRICE_CATEGORIES,
+        backendFiltered: data.student_filtered || false
       })
-
+  
       setProducts(receivedProducts)
       setIsUsingMockData(false)
       
@@ -140,91 +131,256 @@ const SmartCart = ({ darkMode = true }) => {
     }
   }
 
+
+  const filterAllowedProducts = (productList) => {
+    if (!productList || !Array.isArray(productList)) return []
+    
+    // Products are already filtered by backend, just validate
+    return productList.filter((product) => {
+      const price = getProductPrice(product)
+      const foodGroup = getProductFoodGroup(product).toLowerCase()
+      
+      return price > 0 && price <= STUDENT_MAX_PRICE && 
+             ALLOWED_FOOD_GROUPS.includes(foodGroup)
+    })
+  }
+  
+
+  const fetchStudentConfig = async () => {
+    try {
+      const response = await fetch(`${PRODUCT_SERVICE_URL}/student/config`, {
+        headers: { "Content-Type": "application/json" },
+      })
+  
+      if (response.ok) {
+        const config = await response.json()
+        // Update constants with backend values
+        console.log("Student config loaded:", config)
+        return config
+      }
+    } catch (err) {
+      console.warn("Student config fetch failed, using defaults:", err.message)
+    }
+    return null
+  }
+
+
   const fetchCategories = async () => {
     try {
       const response = await fetch(`${PRODUCT_SERVICE_URL}/categories`, {
         headers: { "Content-Type": "application/json" },
       })
-
+  
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-
+  
       const data = await response.json()
-      setCategories(data.categories || data || [])
+      const allCategories = data.categories || data || []
+      
+      // Filter categories to only show allowed food groups
+      const filteredCategories = allCategories.filter(category => 
+        ALLOWED_FOOD_GROUPS.some(allowed => 
+          category.toLowerCase().includes(allowed.toLowerCase())
+        )
+      )
+      
+      setCategories(filteredCategories.length > 0 ? filteredCategories : ALLOWED_FOOD_GROUPS)
     } catch (err) {
       console.warn("Categories fetch failed:", err.message)
-      setCategories([])
+      setCategories(ALLOWED_FOOD_GROUPS) // Fallback to allowed food groups
     }
   }
 
-  // Basket generation with DH
+  // Enhanced Smart Basket Generation with 10 essential products
   const generateSmartBaskets = () => {
-    const essentialCategories = ["dairy", "grains", "protein", "vegetables", "fruits", "bread", "beverages"]
+    // Expanded essential categories for better coverage
+    const essentialCategories = [
+      "dairy", "grains", "protein", "vegetables", "fruits", 
+      "bread", "beverages", "oils", "snacks", "legumes", 
+      "meat", "fish", "eggs", "cereals", "pasta", "rice",
+      "milk", "cheese", "yogurt", "chicken", "beef", "beans"
+    ]
 
-    const currentWeekProducts = getDiverseProducts(products, 12)
-    const nextWeekProducts = getDiverseProducts(
-      products.filter((p) => !currentWeekProducts.find(c => c._id === p._id || c.id === p.id)),
-      10
-    )
+    // Affordable price categories
+    const affordablePriceCategories = ["very_cheap", "cheap", "moderate"]
 
+    // Enhanced function to get 10 essential products
+    const getEssentialProducts = (excludeIds = [], targetCount = 10) => {
+      const essentialProducts = []
+      const usedCategories = new Set()
+      
+      // Step 1: Get one product from each essential category (prioritize diversity)
+      essentialCategories.forEach(category => {
+        if (essentialProducts.length >= targetCount) return
+        
+        const categoryProducts = products.filter(product => {
+          const productCategory = (product.category || product.food_group || "").toLowerCase()
+          const priceCategory = (product.price_category || "").toLowerCase()
+          const productId = product._id || product.id
+          
+          return (
+            (productCategory === category.toLowerCase() || 
+             productCategory.includes(category.toLowerCase()) ||
+             category.toLowerCase().includes(productCategory)) &&
+            affordablePriceCategories.includes(priceCategory) &&
+            !excludeIds.includes(productId) &&
+            getProductPrice(product) > 0 &&
+            getProductPrice(product) <= STUDENT_MAX_PRICE
+          )
+        })
+
+        if (categoryProducts.length > 0) {
+          // Sort by price and priority
+          const sortedProducts = categoryProducts.sort((a, b) => {
+            const priceA = getProductPrice(a)
+            const priceB = getProductPrice(b)
+            
+            // Prioritize very_cheap over cheap over moderate
+            const priorityA = a.price_category === "very_cheap" ? 3 : 
+                            a.price_category === "cheap" ? 2 : 1
+            const priorityB = b.price_category === "very_cheap" ? 3 : 
+                            b.price_category === "cheap" ? 2 : 1
+            
+            if (priorityA !== priorityB) return priorityB - priorityA
+            return priceA - priceB
+          })
+          
+          essentialProducts.push(sortedProducts[0])
+          usedCategories.add(category.toLowerCase())
+          excludeIds.push(sortedProducts[0]._id || sortedProducts[0].id)
+        }
+      })
+
+      // Step 2: If we have less than 10 products, add more from any available affordable products
+      if (essentialProducts.length < targetCount) {
+        const remainingProducts = products.filter(product => {
+          const priceCategory = (product.price_category || "").toLowerCase()
+          const productId = product._id || product.id
+          
+          return affordablePriceCategories.includes(priceCategory) &&
+                 !excludeIds.includes(productId) &&
+                 getProductPrice(product) > 0 &&
+                 getProductPrice(product) <= STUDENT_MAX_PRICE
+        })
+
+        // Sort remaining products by price and add them
+        const sortedRemaining = remainingProducts.sort((a, b) => {
+          const priceA = getProductPrice(a)
+          const priceB = getProductPrice(b)
+          
+          const priorityA = a.price_category === "very_cheap" ? 3 : 
+                          a.price_category === "cheap" ? 2 : 1
+          const priorityB = b.price_category === "very_cheap" ? 3 : 
+                          b.price_category === "cheap" ? 2 : 1
+          
+          if (priorityA !== priorityB) return priorityB - priorityA
+          return priceA - priceB
+        })
+
+        const needed = targetCount - essentialProducts.length
+        essentialProducts.push(...sortedRemaining.slice(0, needed))
+      }
+
+      return essentialProducts.slice(0, targetCount) // Ensure we don't exceed target
+    }
+
+    // Get 10 essential products for current week
+    const currentWeekEssentials = getEssentialProducts([], 10)
+    const currentWeekIds = currentWeekEssentials.map(p => p._id || p.id)
+
+    // Get different 10 essential products for next week
+    const nextWeekEssentials = getEssentialProducts(currentWeekIds, 10)
+
+    // Create basket items with proper categorization
     const createBasketItems = (productList) => {
       return productList.map((product) => {
         const price = getProductPrice(product)
         const name = getProductName(product)
         const category = getProductCategory(product)
-
-        const isEssential = essentialCategories.some(cat => 
-          category.toLowerCase().includes(cat) || 
-          name.toLowerCase().includes(cat)
-        ) || price <= 80 // 80 DH instead of $8
+        const priceCategory = product.price_category || "moderate"
 
         return {
           id: product._id || product.id,
           name,
           price,
-          category,
-          essential: isEssential,
+          category: category.charAt(0).toUpperCase() + category.slice(1),
+          essential: true, // All products in smart basket are essential
           brand: product.brand_name || "Generic",
           studentFriendly: true,
+          priceCategory,
+          isAffordable: affordablePriceCategories.includes(priceCategory.toLowerCase()),
+          nutritionValue: "High"
         }
       })
     }
 
-    const currentItems = createBasketItems(currentWeekProducts)
-    const nextItems = createBasketItems(nextWeekProducts)
+    const currentItems = createBasketItems(currentWeekEssentials)
+    const nextItems = createBasketItems(nextWeekEssentials)
+
+    // Calculate realistic savings based on price categories
+    const calculateSavings = (items) => {
+      const potentialSavings = items.reduce((sum, item) => {
+        if (item.priceCategory === "very_cheap") return sum + (item.price * 0.3)
+        if (item.priceCategory === "cheap") return sum + (item.price * 0.2)
+        return sum + (item.price * 0.1)
+      }, 0)
+      return Math.floor(potentialSavings)
+    }
 
     return {
       current: {
-        title: "Student Basket - This Week",
-        description: "Diverse and economical selection",
+        title: "Essential Student Basket - This Week",
+        description: `${currentItems.length} essential products for students`,
         totalCost: currentItems.reduce((sum, item) => sum + item.price, 0),
-        savings: `Save ${CURRENCY_SYMBOL}${Math.floor(Math.random() * 200 + 150)}`, // DH values
+        savings: `Save ${CURRENCY_SYMBOL}${calculateSavings(currentItems)}`,
         items: currentItems,
+        categoriesCount: new Set(currentItems.map(item => item.category.toLowerCase())).size,
       },
-      next: {
-        title: "Balanced Basket - Next Week",
-        description: "Variety and great value",
-        totalCost: nextItems.reduce((sum, item) => sum + item.price, 0),
-        savings: `Save ${CURRENCY_SYMBOL}${Math.floor(Math.random() * 180 + 120)}`, // DH values
-        items: nextItems,
-      },
+     
     }
   }
 
   const weeklyBaskets = generateSmartBaskets()
 
-  // Other helper functions
-  const addToBasket = (product) => {
-    setBasketProducts([...basketProducts, {
+  // Enhanced basket management functions
+  const addProductToBasket = (product) => {
+    const newProduct = {
       id: product._id || product.id,
       name: getProductName(product),
       price: getProductPrice(product),
       category: getProductCategory(product),
       brand: product.brand_name || "Generic",
-    }])
+    }
+    
+    setBasketProducts(prev => [...prev, newProduct])
+  }
+
+  const removeOriginalItem = (basketKey, itemIndex) => {
+    setRemovedOriginalItems(prev => ({
+      ...prev,
+      [`${basketKey}-${itemIndex}`]: true
+    }))
+  }
+
+  const removeProductFromBasket = (productId) => {
+    setBasketProducts(prev => prev.filter(product => product.id !== productId))
   }
 
   const getTotalWithCustom = () => {
-    const basketTotal = selectedBasket ? weeklyBaskets[selectedBasket]?.totalCost || 0 : 0
+    let basketTotal = 0
+    if (selectedBasket) {
+      const currentBasket = weeklyBaskets[selectedBasket]
+      if (currentBasket && currentBasket.items) {
+        // Calculate total for non-removed original items
+        basketTotal = currentBasket.items.reduce((sum, item, index) => {
+          const itemKey = `${selectedBasket}-${index}`
+          if (!removedOriginalItems[itemKey]) {
+            return sum + item.price
+          }
+          return sum
+        }, 0)
+      }
+    }
+    
     const customTotal = customItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0)
     const additionalTotal = basketProducts.reduce((sum, item) => sum + item.price, 0)
     return basketTotal + customTotal + additionalTotal
@@ -251,15 +407,62 @@ const SmartCart = ({ darkMode = true }) => {
     return productsToDisplay.slice(0, 8)
   }
 
+  const searchProducts = async (searchTerm, category = 'all') => {
+    if (!searchTerm && category === 'all') {
+      await fetchProducts() // Reset to all products
+      return
+    }
+  
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        student_filter: 'true',
+        limit: '50'
+      })
+      
+      if (searchTerm) params.append('search', searchTerm)
+      if (category !== 'all') params.append('category', category)
+  
+      const response = await fetch(`${PRODUCT_SERVICE_URL}/products?${params}`, {
+        headers: { "Content-Type": "application/json" },
+      })
+  
+      if (response.ok) {
+        const data = await response.json()
+        setProducts(data.products || [])
+      }
+    } catch (err) {
+      console.error("Search failed:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Initial data loading
   useEffect(() => {
     const loadData = async () => {
+      const config = await fetchStudentConfig()
+      if (config) {
+        // Update any dynamic configuration if needed
+        console.log("Using backend student config")
+      }
+      
       await fetchProducts()
       await fetchCategories()
     }
     loadData()
   }, [])
 
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm || selectedCategory !== 'all') {
+        searchProducts(searchTerm, selectedCategory)
+      }
+    }, 500) // 500ms debounce
+  
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, selectedCategory])
+  
   return (
     <div className={`sc-container ${darkMode ? "sc-dark-theme" : "sc-light-theme"}`}>
       <div className="sc-header">
@@ -269,7 +472,6 @@ const SmartCart = ({ darkMode = true }) => {
           </div>
           <div className="sc-header-text">
             <h1>Smart Student Cart</h1>
-            <p>MongoDB-powered product selection</p>
           </div>
         </div>
         <div className="sc-ai-badge">
@@ -278,18 +480,6 @@ const SmartCart = ({ darkMode = true }) => {
         </div>
       </div>
 
-      {/* Debug Section */}
-      <div className="sc-debug-section">
-        <h3>🐛 Debug Information</h3>
-        <div>
-          <p><strong>API URL:</strong> {PRODUCT_SERVICE_URL}</p>
-          <p><strong>Products:</strong> {products.length}</p>
-          <p><strong>Categories:</strong> {categories.length}</p>
-          <p><strong>Status:</strong> {debugInfo.status || 'Not set'}</p>
-        </div>
-      </div>
-
-      {/* Budget Section */}
       <div className="sc-budget-section">
         <div className="sc-budget-display">
           <DollarSign size={20} />
@@ -392,16 +582,75 @@ const SmartCart = ({ darkMode = true }) => {
                     <span className="sc-price">{CURRENCY_SYMBOL}{basket.totalCost.toFixed(2)}</span>
                     <span className="sc-savings">{basket.savings}</span>
                   </div>
+                  {basket.categoriesCount && (
+                    <div className="sc-categories-count">
+                      <span className="sc-category-badge">
+                        {basket.categoriesCount} categories
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {selectedBasket === key && (
                   <div className="sc-basket-details">
-                    {basket.items.map((item, index) => (
-                      <div key={index} className={`sc-item-row ${item.essential ? "essential" : ""}`}>
-                        <span className="sc-item-name">{item.name}</span>
-                        <span className="sc-item-price">{CURRENCY_SYMBOL}{item.price.toFixed(2)}</span>
-                        {item.essential && <Check size={14} />}
-                      </div>
-                    ))}
+                    {/* Original basket items with delete option */}
+                    {basket.items.map((item, index) => {
+                      const itemKey = `${key}-${index}`
+                      const isRemoved = removedOriginalItems[itemKey]
+                      
+                      if (isRemoved) return null
+                      
+                      return (
+                        <div key={`original-${index}`} className={`sc-item-row ${item.essential ? "essential" : ""}`}>
+                          <div className="sc-item-info">
+                            <span className="sc-item-name">{item.name}</span>
+                            <span className="sc-item-category">({item.category})</span>
+                          </div>
+                          <div className="sc-item-actions">
+                            <span className="sc-item-price">{CURRENCY_SYMBOL}{item.price.toFixed(2)}</span>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeOriginalItem(key, index);
+                              }}
+                              className="sc-delete-btn"
+                              title="Remove from basket"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    
+                    {/* Additional products added manually */}
+                    {basketProducts.length > 0 && (
+                      <>
+                        <div className="sc-divider">
+                          <span>Added Products</span>
+                        </div>
+                        {basketProducts.map((item, index) => (
+                          <div key={`added-${index}`} className="sc-item-row added-item">
+                            <div className="sc-item-info">
+                              <span className="sc-item-name">{item.name}</span>
+                              <span className="sc-item-category">({item.category})</span>
+                            </div>
+                            <div className="sc-item-actions">
+                              <span className="sc-item-price">{CURRENCY_SYMBOL}{item.price.toFixed(2)}</span>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeProductFromBasket(item.id);
+                                }}
+                                className="sc-delete-btn"
+                                title="Remove from basket"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -421,14 +670,12 @@ const SmartCart = ({ darkMode = true }) => {
                   <div key={product._id || product.id} className="sc-product-card">
                     <div className="sc-product-info">
                       <h4>{productName}</h4>
-                      <p className="sc-product-category">{productCategory}</p>
                       <div className="sc-product-price">
                         <span className="sc-price">{CURRENCY_SYMBOL}{productPrice.toFixed(2)}</span>
-                        {productPrice <= 100 && <span className="sc-good-deal">Good deal!</span>}
                       </div>
                     </div>
                     <button 
-                      onClick={() => addToBasket(product)} 
+                      onClick={() => addProductToBasket(product)} 
                       className="sc-add-to-basket-btn"
                     >
                       <Plus size={16} />
