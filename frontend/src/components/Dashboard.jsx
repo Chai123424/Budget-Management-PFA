@@ -33,6 +33,7 @@ import Savings from "./Savings";
 import GoalsPage  from "./Goals";
 import GroceryMap from "./GroceryMap";
 import SmartCart from "./SmartCart";
+import Chatbot1 from "./chatbot";
 
 
 export default function Dashboard() {
@@ -174,7 +175,11 @@ export default function Dashboard() {
           </div>
         )
       case "ai-advisor":
-        return renderComingSoon(activeTab)
+        return (
+          <div className="content-page">
+            <Chatbot1 darkMode={darkMode} />
+          </div>
+        )
       case "Smart-Cart":
         return (
           <div className="content-page">

@@ -25,7 +25,7 @@ import "../css/SmartCart.css"
 const SmartCart = ({ darkMode = true }) => {
   // Constants - moved from backend to frontend
   const CURRENCY_SYMBOL = "DH";
-  const STUDENT_MAX_PRICE = 50; 
+  const STUDENT_MAX_PRICE = 25; 
   const PRODUCT_SERVICE_URL = process.env.NEXT_PUBLIC_PRODUCT_SERVICE_URL || "http://localhost:5002/api"
   const ALLOWED_FOOD_GROUPS = ["dairy", "vegetables", "protein", "carbs", "condiments", "fruits"];
   const ALLOWED_PRICE_CATEGORIES = ["very_cheap", "cheap"];

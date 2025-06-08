@@ -6,17 +6,15 @@ import json
 import logging
 import os
 from datetime import datetime
-from dotenv import load_dotenv
+from config import Config
 
 ALLOWED_FOOD_GROUPS = ["dairy", "vegetables", "protein", "carbs", "condiments", "fruits"]
 ALLOWED_PRICE_CATEGORIES = ["very_cheap", "cheap"]
 STUDENT_MAX_PRICE = 25
 
-load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(','))
-
+CORS(app, origins=Config.CORS_ORIGINS.split(','))
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -177,6 +175,7 @@ def health_check():
             
         return jsonify({
             'status': 'healthy',
+            'service': 'smartcart_service',
             'mongodb_connected': db_status,
             'product_count': product_count,
             'timestamp': datetime.now().isoformat()
@@ -184,6 +183,7 @@ def health_check():
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
+            'service': 'smartcart_service',
             'mongodb_connected': False,
             'error': str(e),
             'timestamp': datetime.now().isoformat()
@@ -476,4 +476,9 @@ def internal_error(error):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
     debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+    print(f"🛒 Smart Cart Service starting on port {port}")
+    print(f"📋 Available endpoints:")
+    print(f"   • Products: http://localhost:{port}/api/products")
+    print(f"   • Health: http://localhost:{port}/api/health")
+    print(f"   • Categories: http://localhost:{port}/api/categories")
     app.run(host='0.0.0.0', port=port, debug=debug)

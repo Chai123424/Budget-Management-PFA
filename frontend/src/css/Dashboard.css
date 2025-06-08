@@ -112,23 +112,7 @@
   scrollbar-width: none;
 }
 
-/* Alternative approach - make scrollbars invisible but functional */
-/* Uncomment this section if the above doesn't work properly */
-/*
-::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
-  background: transparent;
-}
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: transparent;
-}
-*/
 
 /* Ensure specific elements maintain hidden scrollbars */
 .dbNav {
@@ -546,7 +530,7 @@ body::-webkit-scrollbar {
 /* Content with proper top margin to account for fixed header */
 .dbContent {
   flex: 1;
-  padding: 28px;
+  padding: 5px;
   position: relative;
   z-index: 1;
   margin-top: 80px; /* Add margin to account for fixed header height */
