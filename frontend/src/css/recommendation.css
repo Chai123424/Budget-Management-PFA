@@ -1,0 +1,184 @@
+/* Reset */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  color: #333;
+}
+
+/* Navbar */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+.logo span {
+  color: #4f46e5;
+  margin-left: 0.5rem;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-links li {
+  cursor: pointer;
+  color: #555;
+}
+
+.nav-links .active {
+  font-weight: bold;
+  color: #4f46e5;
+}
+
+.logout-btn {
+  border: 1px solid #4f46e5;
+  background: white;
+  color: #4f46e5;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* Content */
+.recommend-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.recommend-content {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: auto;
+}
+
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Calculator Card */
+.calculator-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.calculator-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.icon {
+  background-color: #fef08a;
+  color: #ca8a04;
+  border-radius: 50%;
+  padding: 0.5rem;
+  font-weight: bold;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.subtext {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+/* Grid */
+.recipe-grid {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.recipe-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recipe-grid::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 3px;
+}
+
+.recipe-card {
+  flex: 0 0 230px;
+}
+
+
+.recipe-card:hover {
+  transform: scale(1.02);
+}
+
+.recipe-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+.recipe-card h4 {
+  margin: 0.5rem 1rem 0.2rem;
+  font-size: 1.1rem;
+}
+
+.price {
+  margin: 0 1rem;
+  color: #4f46e5;
+  font-weight: bold;
+}
+
+.recipe-details {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5rem 1rem 1rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Slider */
+.slider-section {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slider-section input[type="range"] {
+  width: 100%;
+}
+
+/* Button */
+.compare-btn {
+  margin-top: 1.5rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.compare-btn:hover {
+  background-color: #4338ca;
+}
