@@ -153,7 +153,7 @@ const LoginSignup = () => {
       
       await AsyncStorage.setItem("authToken", response.data.token);
       await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
-      router.push("../Dashboard/Dashboard")
+      router.push("../overview/overview")
     } else {
       
       Alert.alert("Success", "Account created successfully!", [
