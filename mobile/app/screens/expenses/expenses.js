@@ -196,21 +196,41 @@ const handleAddExpense = async () => {
       description: newExpense.description
     };
 
-    // 2. Charger les dépenses existantes
+    // 2. Charger et mettre à jour les dépenses
     const savedExpenses = await AsyncStorage.getItem('expenses');
     const parsedExpenses = savedExpenses ? JSON.parse(savedExpenses) : [];
-    
-    // 3. Ajouter la nouvelle dépense
     const updatedExpenses = [...parsedExpenses, expenseToAdd];
     
-    // 4. Sauvegarder dans AsyncStorage
+    // 3. Sauvegarder localement
     await AsyncStorage.setItem('expenses', JSON.stringify(updatedExpenses));
 
-    // 5. Mettre à jour les données du formulaire budgétaire
+    // 4. NOUVEAU: Synchroniser immédiatement avec le serveur
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await fetch('http://10.0.2.2:5000/api/users/save_expenses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ expenses: updatedExpenses })
+        });
+
+        if (response.ok) {
+          console.log('Dépenses synchronisées avec le serveur');
+        } else {
+          console.error('Erreur synchronisation dépenses:', response.status);
+        }
+      } catch (serverError) {
+        console.error('Erreur connexion serveur pour sync dépenses:', serverError);
+      }
+    }
+
+    // 5. Mettre à jour les données du formulaire budgétaire (code existant)
     const formDataString = await AsyncStorage.getItem('budgetFormData');
     let formData = formDataString ? JSON.parse(formDataString) : {};
     
-    // Mettre à jour la catégorie appropriée en ajoutant le montant
     const amount = parseFloat(newExpense.amount);
     switch (newExpense.category) {
       case 'Loyer':
@@ -227,20 +247,16 @@ const handleAddExpense = async () => {
         formData.hasTuition = 'yes';
         break;
       default:
-        // Pour les autres catégories, on peut les ajouter à un champ "autres"
         formData.other = (parseFloat(formData.other) || 0) + amount;
         break;
     }
 
-    // 6. Sauvegarder les données du formulaire mises à jour
+    // 6. Sauvegarder et synchroniser les données du budget
     await AsyncStorage.setItem('budgetFormData', JSON.stringify(formData));
 
-    // 7. Envoyer les données au serveur
-    const token = await AsyncStorage.getItem('token');
     if (token) {
-      const API_BASE_URL = 'http://10.0.2.2:5000/api';
       try {
-        const response = await fetch(`${API_BASE_URL}/users/save_budget_data`, {
+        const budgetResponse = await fetch('http://10.0.2.2:5000/api/users/save_budget_data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -249,17 +265,15 @@ const handleAddExpense = async () => {
           body: JSON.stringify(formData),
         });
 
-        if (!response.ok) {
-          console.error('Erreur lors de la sauvegarde sur le serveur:', response.status);
-        } else {
-          console.log('Données synchronisées avec le serveur');
+        if (budgetResponse.ok) {
+          console.log('Données budget synchronisées');
         }
-      } catch (serverError) {
-        console.error('Erreur de connexion au serveur:', serverError);
+      } catch (budgetError) {
+        console.error('Erreur sync budget:', budgetError);
       }
     }
 
-    // 8. Réinitialiser le formulaire
+    // 7. Réinitialiser et recharger
     setShowAddModal(false);
     setNewExpense({
       title: "",
@@ -269,10 +283,7 @@ const handleAddExpense = async () => {
       description: ""
     });
 
-    // 9. Recharger les dépenses
     await loadExpenses();
-
-    // 10. Afficher un message de confirmation
     Alert.alert('Succès', 'Dépense ajoutée avec succès !');
 
   } catch (error) {
@@ -280,12 +291,6 @@ const handleAddExpense = async () => {
     Alert.alert('Erreur', 'Une erreur est survenue lors de l\'ajout de la dépense');
   }
 };
-
-  const handleDeleteExpense = async (id) => {
-    const updatedExpenses = expenses.filter((expense) => expense.id !== id);
-    setExpenses(updatedExpenses);
-    await AsyncStorage.setItem('expenses', JSON.stringify(updatedExpenses));
-  };
 
   const getCategoryIcon = (category) => {
     const categoryMap = {

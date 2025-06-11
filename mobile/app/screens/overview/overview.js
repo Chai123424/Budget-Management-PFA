@@ -430,7 +430,7 @@ const updateBudgetDisplay = (data) => {
         <View style={[styles.sectionCard, theme.card]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, theme.text]}>Transactions récentes</Text>
-            <TouchableOpacity onPress={() => router.push('/expenses')}>
+            <TouchableOpacity onPress={() => router.push('../expenses/expenses')}>
               <Text style={{ color: COLORS.primary }}>Voir tout</Text>
             </TouchableOpacity>
           </View>
