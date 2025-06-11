@@ -8,7 +8,9 @@ import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
 import { Picker } from '@react-native-picker/picker';
+import axios from 'axios';
 
+const API_URL = "http://10.0.2.2:5000/api"; // Pour l'émulateur Android
 
 // Configuration du calendrier en français
 LocaleConfig.locales['fr'] = {
@@ -85,13 +87,24 @@ export default function GoalsScreen() {
 
   const loadGoals = async () => {
     try {
-      const savedGoals = await AsyncStorage.getItem('goals');
-      if (savedGoals) {
-        const parsedGoals = JSON.parse(savedGoals);
-        setGoals(parsedGoals);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('Token not found');
+        return;
+      }
+
+      const response = await axios.get(`${API_URL}/users/get_goals`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.data.goals) {
+        setGoals(response.data.goals);
       }
     } catch (error) {
       console.error('Error loading goals:', error);
+      Alert.alert('Erreur', 'Impossible de charger les objectifs');
     }
   };
 
@@ -165,12 +178,28 @@ export default function GoalsScreen() {
     }
   };
 
-  const saveGoals = async (updatedGoals) => {
+  const saveGoalsToServer = async (updatedGoals) => {
     try {
-      await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
-      setGoals(updatedGoals);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('Token not found');
+        return false;
+      }
+
+      await axios.post(`${API_URL}/users/save_goals`, 
+        { goals: updatedGoals },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      return true;
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde des objectifs:', error);
+      console.error('Error saving goals to server:', error);
+      return false;
     }
   };
 
@@ -241,10 +270,17 @@ export default function GoalsScreen() {
 
     try {
       const updatedGoals = [...goals, goalToAdd];
-      await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
-      setGoals(updatedGoals);
-      setModalVisible(false);
-      resetNewGoal();
+      const success = await saveGoalsToServer(updatedGoals);
+      
+      if (success) {
+        setGoals(updatedGoals);
+        // Garder une copie locale pour la rapidité d'accès
+        await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
+        setModalVisible(false);
+        resetNewGoal();
+      } else {
+        Alert.alert('Erreur', 'Impossible de sauvegarder l\'objectif sur le serveur');
+      }
     } catch (error) {
       console.error('Error saving goal:', error);
       Alert.alert('Erreur', 'Impossible de sauvegarder l\'objectif');
@@ -258,9 +294,7 @@ export default function GoalsScreen() {
           const currentAmount = parseFloat(goal.currentAmount) + parseFloat(amount);
           const targetAmount = parseFloat(goal.targetAmount);
           
-          // Check if goal is completed
           if (currentAmount >= targetAmount) {
-            // Remove the goal if completed
             return null;
           }
           
@@ -270,14 +304,20 @@ export default function GoalsScreen() {
           };
         }
         return goal;
-      }).filter(Boolean); // Remove null values (completed goals)
+      }).filter(Boolean);
 
-      await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
-      setGoals(updatedGoals);
+      const success = await saveGoalsToServer(updatedGoals);
+      
+      if (success) {
+        // Garder une copie locale pour la rapidité d'accès
+        await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
+        setGoals(updatedGoals);
 
-      // Show completion message if goal was removed
-      if (updatedGoals.length < goals.length) {
-        Alert.alert('Félicitations !', 'Objectif atteint !');
+        if (updatedGoals.length < goals.length) {
+          Alert.alert('Félicitations !', 'Objectif atteint !');
+        }
+      } else {
+        Alert.alert('Erreur', 'Impossible de mettre à jour l\'objectif sur le serveur');
       }
     } catch (error) {
       console.error('Error updating goal:', error);
