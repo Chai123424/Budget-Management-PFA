@@ -86,7 +86,7 @@ export default function TransactionsList({ transactions, accounts, filterPeriod,
                   ]}
                 >
                   {transaction.type === "deposit" ? "+" : "-"}
-                  {transaction.amount.toFixed(2)} €
+                  {transaction.amount.toFixed(2)} DH
                 </Text>
               </View>
             );

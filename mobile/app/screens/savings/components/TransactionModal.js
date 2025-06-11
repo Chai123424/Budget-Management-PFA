@@ -155,7 +155,7 @@ export default function TransactionModal({ visible, account, onClose, onSave, th
             )}
 
             <View style={styles.formGroup}>
-              <Text style={[styles.label, theme.text]}>Montant (€)</Text>
+              <Text style={[styles.label, theme.text]}>Montant (DH)</Text>
               <TextInput
                 style={[styles.input, theme.card, theme.text]}
                 value={transactionData.amount}

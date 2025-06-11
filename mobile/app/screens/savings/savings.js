@@ -440,7 +440,7 @@ export default function SavingsScreen() {
       // Afficher une confirmation
       Alert.alert(
         "Transaction effectuée",
-        `${transactionData.type === "deposit" ? "Dépôt" : "Retrait"} de ${transactionData.amount}€ ${transactionData.type === "deposit" ? "sur" : "depuis"} ${transactionAccount.name}`,
+        `${transactionData.type === "deposit" ? "Dépôt" : "Retrait"} de ${transactionData.amount} DH ${transactionData.type === "deposit" ? "sur" : "depuis"} ${transactionAccount.name}`,
         [{ text: "OK" }]
       );
 
@@ -495,13 +495,13 @@ export default function SavingsScreen() {
         </Text>
         <View style={styles.recommendationsContent}>
           <Text style={[styles.recommendationsText, theme.text]}>
-            Revenu total: {savingsRecommendations.totalIncome.toFixed(2)} €
+            Revenu total: {savingsRecommendations.totalIncome.toFixed(2)} DH
           </Text>
           <Text style={[styles.recommendationsText, theme.text]}>
-            Dépenses totales: {savingsRecommendations.totalExpenses.toFixed(2)} €
+            Dépenses totales: {savingsRecommendations.totalExpenses.toFixed(2)} DH
           </Text>
           <Text style={[styles.recommendationsText, theme.text]}>
-            Disponible pour l'épargne: {savingsRecommendations.availableForSavings.toFixed(2)} €
+            Disponible pour l'épargne: {savingsRecommendations.availableForSavings.toFixed(2)} DH
           </Text>
           
           <View style={styles.recommendationsDivider} />
@@ -512,7 +512,7 @@ export default function SavingsScreen() {
           
           <View style={styles.progressContainer}>
             <Text style={[styles.recommendationsText, theme.text]}>
-              Fonds d'urgence: {emergencyProgress.toFixed(2)} € / {savingsRecommendations.recommendations.emergencyTarget.toFixed(2)} €
+              Fonds d'urgence: {emergencyProgress.toFixed(2)} DH / {savingsRecommendations.recommendations.emergencyTarget.toFixed(2)} DH
             </Text>
             <Text style={[styles.recommendationsSubtext, theme.textSecondary]}>
               {savingsRecommendations.recommendations.timeToEmergencyFund > 0 
@@ -534,7 +534,7 @@ export default function SavingsScreen() {
 
           <View style={styles.progressContainer}>
             <Text style={[styles.recommendationsText, theme.text]}>
-              Objectifs: {goalsProgress.toFixed(2)} € / {savingsRecommendations.recommendations.goals.toFixed(2)} € par mois
+              Objectifs: {goalsProgress.toFixed(2)} DH / {savingsRecommendations.recommendations.goals.toFixed(2)} DH par mois
             </Text>
             <View style={styles.progressBar}>
               <View 
@@ -554,13 +554,13 @@ export default function SavingsScreen() {
               Recommandations mensuelles:
             </Text>
             <Text style={[styles.recommendationsText, theme.text]}>
-              • Fonds d'urgence: {savingsRecommendations.recommendations.emergency.toFixed(2)} €
+              • Fonds d'urgence: {savingsRecommendations.recommendations.emergency.toFixed(2)} DH
             </Text>
             <Text style={[styles.recommendationsText, theme.text]}>
-              • Objectifs: {savingsRecommendations.recommendations.goals.toFixed(2)} €
+              • Objectifs: {savingsRecommendations.recommendations.goals.toFixed(2)} DH
             </Text>
             <Text style={[styles.recommendationsText, theme.text]}>
-              • Loisirs/Flexible: {savingsRecommendations.recommendations.leisure.toFixed(2)} €
+              • Loisirs/Flexible: {savingsRecommendations.recommendations.leisure.toFixed(2)} DH
             </Text>
           </View>
         </View>

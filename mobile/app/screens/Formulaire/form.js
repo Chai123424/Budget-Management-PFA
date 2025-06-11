@@ -691,7 +691,7 @@ const syncWithServer = async () => {
             <Text style={styles.budgetSectionTitle}>Student Budget</Text>
 
             <View style={styles.formRow}>
-              <Text style={styles.label}>What's your monthly budget? (€) *</Text>
+              <Text style={styles.label}>What's your monthly budget? (DH) *</Text>
               <TextInput
                 style={[styles.input, errors.budget && styles.errorInput]}
                 value={formData.budget}
@@ -735,7 +735,7 @@ const syncWithServer = async () => {
 
             {formData.hasTuition === 'yes' && (
               <View style={styles.formRow}>
-                <Text style={styles.label}>How much do you earn from tuition? (€) *</Text>
+                <Text style={styles.label}>How much do you earn from tuition? (DH) *</Text>
                 <TextInput
                   style={[styles.input, errors.tuitionAmount && styles.errorInput]}
                   value={formData.tuitionAmount}
@@ -754,7 +754,7 @@ const syncWithServer = async () => {
               <Text style={styles.budgetSectionTitle}>Monthly Expenses</Text>
 
               <View style={styles.formRow}>
-                <Text style={styles.label}>How much do you spend on rent? (€) *</Text>
+                <Text style={styles.label}>How much do you spend on rent? (DH) *</Text>
                 <TextInput
                   style={[styles.input, errors.rent && styles.errorInput]}
                   value={formData.rent}
@@ -767,7 +767,7 @@ const syncWithServer = async () => {
               </View>
 
               <View style={styles.formRow}>
-                <Text style={styles.label}>How much do you spend on food? (€) *</Text>
+                <Text style={styles.label}>How much do you spend on food? (DH) *</Text>
                 <TextInput
                   style={[styles.input, errors.food && styles.errorInput]}
                   value={formData.food}
@@ -780,7 +780,7 @@ const syncWithServer = async () => {
               </View>
 
               <View style={styles.formRow}>
-                <Text style={styles.label}>How much do you spend on transportation? (€) *</Text>
+                <Text style={styles.label}>How much do you spend on transportation? (DH) *</Text>
                 <TextInput
                   style={[styles.input, errors.transport && styles.errorInput]}
                   value={formData.transport}
@@ -853,7 +853,7 @@ const syncWithServer = async () => {
               <Text style={styles.summaryTitle}>Budget Information</Text>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Monthly Budget:</Text>
-                <Text style={styles.summaryValue}>{formData.budget} €</Text>
+                <Text style={styles.summaryValue}>{formData.budget} DH</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Has Tuition:</Text>
@@ -864,7 +864,7 @@ const syncWithServer = async () => {
               {formData.hasTuition === 'yes' && (
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Tuition Amount:</Text>
-                  <Text style={styles.summaryValue}>{formData.tuitionAmount} €</Text>
+                  <Text style={styles.summaryValue}>{formData.tuitionAmount} DH</Text>
                 </View>
               )}
             </View>
@@ -873,26 +873,26 @@ const syncWithServer = async () => {
               <Text style={styles.summaryTitle}>Monthly Expenses</Text>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Rent:</Text>
-                <Text style={styles.summaryValue}>{formData.rent} €</Text>
+                <Text style={styles.summaryValue}>{formData.rent} DH</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Food:</Text>
-                <Text style={styles.summaryValue}>{formData.food} €</Text>
+                <Text style={styles.summaryValue}>{formData.food} DH</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Transportation:</Text>
-                <Text style={styles.summaryValue}>{formData.transport} €</Text>
+                <Text style={styles.summaryValue}>{formData.transport} DH</Text>
               </View>
             </View>
 
             <View style={[styles.summarySection, { marginBottom: 0 }]}>
               <View style={[styles.summaryRow, styles.total]}>
                 <Text style={styles.summaryLabel}>Total Expenses:</Text>
-                <Text style={styles.summaryValue}>{totalExpenses.toFixed(2)} €</Text>
+                <Text style={styles.summaryValue}>{totalExpenses.toFixed(2)} DH</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Total Income:</Text>
-                <Text style={styles.summaryValue}>{totalIncome.toFixed(2)} €</Text>
+                <Text style={styles.summaryValue}>{totalIncome.toFixed(2)} DH</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Remaining Budget:</Text>
@@ -900,7 +900,7 @@ const syncWithServer = async () => {
                   styles.summaryValue,
                   remaining >= 0 ? styles.positive : styles.negative
                 ]}>
-                  {remaining.toFixed(2)} €
+                  {remaining.toFixed(2)} DH
                 </Text>
               </View>
             </View>

@@ -565,7 +565,7 @@ export default function GoalsScreen() {
           {Object.entries(SAVING_FREQUENCIES).map(([key, value]) => (
             <Picker.Item 
               key={key} 
-              label={`${value.label} (${parseFloat(newGoal.savingsByFrequency[key] || 0).toFixed(2)}€)`} 
+              label={`${value.label} (${parseFloat(newGoal.savingsByFrequency[key] || 0).toFixed(2)} DH)`} 
               value={key} 
             />
           ))}
@@ -624,7 +624,7 @@ export default function GoalsScreen() {
 
             <TextInput
               style={[styles.input, theme.text, { borderColor: theme === styles.dark ? COLORS.borderDark : COLORS.borderLight }]}
-              placeholder="Montant cible (€)"
+              placeholder="Montant cible (DH)"
               placeholderTextColor={theme.textSecondary.color}
               keyboardType="numeric"
               value={newGoal.targetAmount}

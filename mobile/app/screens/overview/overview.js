@@ -433,7 +433,7 @@ const updateBudgetDisplay = (data) => {
           <View style={[styles.statCard, theme.card]}>
             <Text style={theme.textSecondary}>Spent this month</Text>
             <CreditCard color={COLORS.primary} />
-            <Text style={[styles.amount, theme.text]}>{budgetData.spent.toFixed(0)} €</Text>
+            <Text style={[styles.amount, theme.text]}>{budgetData.spent.toFixed(0)} DH</Text>
             <View style={styles.trendRow}>
               <ArrowUpRight size={16} color={spentTrend > 0 ? COLORS.success : COLORS.warning} />
               <Text style={{ color: spentTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
@@ -445,7 +445,7 @@ const updateBudgetDisplay = (data) => {
           <View style={[styles.statCard, theme.card]}>
             <Text style={theme.textSecondary}>Saved this month</Text>
             <Wallet color={COLORS.success} />
-            <Text style={[styles.amount, theme.text]}>{budgetData.saved.toFixed(0)} €</Text>
+            <Text style={[styles.amount, theme.text]}>{budgetData.saved.toFixed(0)} DH</Text>
             <View style={styles.trendRow}>
               <ArrowUpRight size={16} color={savedTrend > 0 ? COLORS.success : COLORS.warning} />
               <Text style={{ color: savedTrend > 0 ? COLORS.success : COLORS.warning, marginLeft: 4 }}>
@@ -458,10 +458,10 @@ const updateBudgetDisplay = (data) => {
             <Text style={theme.textSecondary}>Remaining Budget</Text>
             <DollarSign color={budgetData.remaining >= 0 ? COLORS.success : COLORS.warning} />
             <Text style={[styles.amount, theme.text, budgetData.remaining < 0 && { color: COLORS.warning }]}>
-              {budgetData.remaining.toFixed(0)} €
+              {budgetData.remaining.toFixed(0)} DH
             </Text>
             <Text style={theme.textSecondary}>
-              {percentRemaining}% of monthly budget ({budgetData.budget.toFixed(0)} €)
+              {percentRemaining}% of monthly budget ({budgetData.budget.toFixed(0)} DH)
             </Text>
             <View style={styles.progressBarContainer}>
               <View style={[
@@ -473,8 +473,8 @@ const updateBudgetDisplay = (data) => {
               ]} />
             </View>
             <View style={styles.progressLabels}>
-              <Text style={theme.textSecondary}>0 €</Text>
-              <Text style={theme.textSecondary}>{budgetData.budget.toFixed(0)} €</Text>
+              <Text style={theme.textSecondary}>0 DH</Text>
+              <Text style={theme.textSecondary}>{budgetData.budget.toFixed(0)} DH</Text>
             </View>
           </View>
         </View>
@@ -547,7 +547,7 @@ const updateBudgetDisplay = (data) => {
                   <Text style={theme.textSecondary}><Clock size={12} /> Aujourd'hui</Text>
                 </View>
               </View>
-              <Text style={[theme.text, { color: COLORS.success }]}>+{budgetData.budget.toFixed(0)} €</Text>
+              <Text style={[theme.text, { color: COLORS.success }]}>+{budgetData.budget.toFixed(0)} DH</Text>
             </View>
 
             <View style={styles.transaction}>
@@ -560,7 +560,7 @@ const updateBudgetDisplay = (data) => {
                   <Text style={theme.textSecondary}><Clock size={12} /> Hier</Text>
                 </View>
               </View>
-              <Text style={[theme.text, { color: COLORS.warning }]}>-{expenseDetails.rent.toFixed(0)} €</Text>
+              <Text style={[theme.text, { color: COLORS.warning }]}>-{expenseDetails.rent.toFixed(0)} DH</Text>
             </View>
 
             <View style={styles.transaction}>
@@ -573,7 +573,7 @@ const updateBudgetDisplay = (data) => {
                   <Text style={theme.textSecondary}><Clock size={12} /> 2 jours</Text>
                 </View>
               </View>
-              <Text style={[theme.text, { color: COLORS.warning }]}>-{expenseDetails.food.toFixed(0)} €</Text>
+              <Text style={[theme.text, { color: COLORS.warning }]}>-{expenseDetails.food.toFixed(0)} DH</Text>
             </View>
           </View>
         </View>
@@ -631,7 +631,7 @@ const updateBudgetDisplay = (data) => {
                 </View>
                 <View style={styles.paymentAmount}>
                   <Text style={[theme.text, payment.isPaid && { color: COLORS.success }]}>
-                    {payment.amount.toFixed(2)} €
+                    {payment.amount.toFixed(2)} DH
                   </Text>
                   {!payment.isPaid && (
                     <TouchableOpacity style={styles.payButton}>
@@ -677,8 +677,8 @@ const updateBudgetDisplay = (data) => {
                     ]} />
                   </View>
                   <View style={styles.goalAmounts}>
-                    <Text style={theme.text}>{goal.current} €</Text>
-                    <Text style={theme.textSecondary}>/ {goal.target} €</Text>
+                    <Text style={theme.text}>{goal.current} DH</Text>
+                    <Text style={theme.textSecondary}>/ {goal.target} DH</Text>
                   </View>
                   <Text style={[styles.goalPercentage, { color: getPriorityColor(goal.priority) }]}>
                     {goal.target > 0 ? Math.round((goal.current / goal.target) * 100) : 0}%

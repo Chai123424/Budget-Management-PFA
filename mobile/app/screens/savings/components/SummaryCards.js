@@ -13,7 +13,7 @@ export default function SummaryCards({ totalBalance, accountsCount, lastTransact
     <View style={styles.container}>
       <View style={[styles.card, theme.card, styles.totalCard]}>
         <Text style={[styles.cardTitle, theme.textSecondary]}>Solde Total</Text>
-        <Text style={[styles.totalAmount, theme.text]}>{totalBalance.toFixed(2)} €</Text>
+        <Text style={[styles.totalAmount, theme.text]}>{totalBalance.toFixed(2)} DH</Text>
         <View style={styles.sparkline}>
           {[60, 40, 70, 50, 80, 65, 90].map((height, index) => (
             <View
@@ -46,7 +46,7 @@ export default function SummaryCards({ totalBalance, accountsCount, lastTransact
           <>
             <Text style={[styles.lastTransaction, theme.text]}>
               {lastTransaction.type === "deposit" ? "+" : "-"}
-              {lastTransaction.amount.toFixed(2)} €
+              {lastTransaction.amount.toFixed(2)} DH
             </Text>
             <View style={styles.dateContainer}>
               <Clock size={14} color={theme.textSecondary.color} />

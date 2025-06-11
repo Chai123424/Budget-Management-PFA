@@ -153,7 +153,7 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={[styles.label, theme.text]}>Solde actuel (€)</Text>
+              <Text style={[styles.label, theme.text]}>Solde actuel (DH)</Text>
               <TextInput
                 style={[styles.input, theme.card, theme.text]}
                 value={formData.balance}
@@ -227,7 +227,7 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
                   <View style={[styles.calculatedSavings, theme.card]}>
                     <Clock size={20} color={theme.text.color} />
                     <Text style={[styles.calculatedSavingsText, theme.text]}>
-                      {formData.monthlySavingsGoal ? `${formData.monthlySavingsGoal} € par mois` : "Définissez un objectif et une date"}
+                      {formData.monthlySavingsGoal ? `${formData.monthlySavingsGoal} DH par mois` : "Définissez un objectif et une date"}
                     </Text>
                   </View>
                 </View>

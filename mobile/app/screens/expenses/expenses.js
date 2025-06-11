@@ -449,7 +449,7 @@ const handleAddExpense = async () => {
                   </View>
                 </View>
                 <Text style={[styles.expenseAmount, theme.text]}>
-                  {expense.amount.toFixed(2)} €
+                  {expense.amount.toFixed(2)} DH
                 </Text>
               </View>
             </View>

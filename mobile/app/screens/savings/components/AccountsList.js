@@ -75,7 +75,7 @@ export default function AccountsList({ accounts, onEdit, onDelete, onAddTransact
 
             <View style={styles.accountBalance}>
               <Text style={[styles.balanceAmount, theme.text]}>
-                {account.balance.toFixed(2)} €
+                {account.balance.toFixed(2)} DH
               </Text>
               <View style={styles.accountActions}>
                 <TouchableOpacity
