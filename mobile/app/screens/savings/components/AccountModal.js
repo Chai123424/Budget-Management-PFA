@@ -11,7 +11,9 @@ import {
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { accountTypes, accountColors } from '../savings';
+import { Calendar, Clock } from 'lucide-react-native';
 
 export default function AccountModal({ visible, account, onClose, onSave, theme }) {
   const [formData, setFormData] = useState({
@@ -21,6 +23,10 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
     interestRate: "",
     color: "#6366f1",
     icon: "wallet",
+    targetDate: new Date(),
+    targetAmount: "",
+    monthlySavingsGoal: "",
+    showDatePicker: false,
   });
 
   useEffect(() => {
@@ -32,6 +38,10 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
         interestRate: account.interestRate.toString(),
         color: account.color,
         icon: account.icon,
+        targetDate: account.targetDate ? new Date(account.targetDate) : new Date(),
+        targetAmount: account.targetAmount ? account.targetAmount.toString() : "",
+        monthlySavingsGoal: account.monthlySavingsGoal ? account.monthlySavingsGoal.toString() : "",
+        showDatePicker: false,
       });
     } else {
       setFormData({
@@ -41,6 +51,10 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
         interestRate: "",
         color: "#6366f1",
         icon: "wallet",
+        targetDate: new Date(),
+        targetAmount: "",
+        monthlySavingsGoal: "",
+        showDatePicker: false,
       });
     }
   }, [account]);
@@ -51,6 +65,17 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
       return;
     }
 
+    // Calculer l'objectif mensuel d'épargne si on a une date cible et un montant cible
+    let calculatedMonthlySavings = "";
+    if (formData.accountType === "investment" && formData.targetAmount && formData.targetDate) {
+      const today = new Date();
+      const monthsUntilTarget = (formData.targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+      const remainingAmount = parseFloat(formData.targetAmount) - parseFloat(formData.balance);
+      if (monthsUntilTarget > 0 && remainingAmount > 0) {
+        calculatedMonthlySavings = (remainingAmount / monthsUntilTarget).toFixed(2);
+      }
+    }
+
     onSave({
       name: formData.name,
       balance: parseFloat(formData.balance),
@@ -58,6 +83,39 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
       interestRate: parseFloat(formData.interestRate) || 0,
       color: formData.color,
       icon: formData.icon,
+      targetDate: formData.targetDate.toISOString(),
+      targetAmount: parseFloat(formData.targetAmount) || 0,
+      monthlySavingsGoal: calculatedMonthlySavings || formData.monthlySavingsGoal,
+    });
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    setFormData(prev => ({
+      ...prev,
+      showDatePicker: false,
+      targetDate: selectedDate || prev.targetDate,
+    }));
+
+    // Recalculer l'objectif mensuel d'épargne
+    if (selectedDate && formData.targetAmount) {
+      const today = new Date();
+      const monthsUntilTarget = (selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+      const remainingAmount = parseFloat(formData.targetAmount) - parseFloat(formData.balance);
+      if (monthsUntilTarget > 0 && remainingAmount > 0) {
+        const monthlySavings = (remainingAmount / monthsUntilTarget).toFixed(2);
+        setFormData(prev => ({
+          ...prev,
+          monthlySavingsGoal: monthlySavings,
+        }));
+      }
+    }
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -126,6 +184,55 @@ export default function AccountModal({ visible, account, onClose, onSave, theme 
                 </Picker>
               </View>
             </View>
+
+            {formData.accountType === "investment" && (
+              <>
+                <View style={styles.formGroup}>
+                  <Text style={[styles.label, theme.text]}>Montant objectif</Text>
+                  <TextInput
+                    style={[styles.input, theme.card, theme.text]}
+                    value={formData.targetAmount}
+                    onChangeText={(text) => setFormData({ ...formData, targetAmount: text })}
+                    placeholder="0.00"
+                    keyboardType="numeric"
+                    placeholderTextColor={theme.textSecondary.color}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={[styles.label, theme.text]}>Date objectif</Text>
+                  <TouchableOpacity
+                    style={[styles.dateButton, theme.card]}
+                    onPress={() => setFormData({ ...formData, showDatePicker: true })}
+                  >
+                    <Calendar size={20} color={theme.text.color} />
+                    <Text style={[styles.dateButtonText, theme.text]}>
+                      {formatDate(formData.targetDate)}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {formData.showDatePicker && (
+                  <DateTimePicker
+                    value={formData.targetDate}
+                    mode="date"
+                    display="default"
+                    onChange={onDateChange}
+                    minimumDate={new Date()}
+                  />
+                )}
+
+                <View style={styles.formGroup}>
+                  <Text style={[styles.label, theme.text]}>Épargne mensuelle nécessaire</Text>
+                  <View style={[styles.calculatedSavings, theme.card]}>
+                    <Clock size={20} color={theme.text.color} />
+                    <Text style={[styles.calculatedSavingsText, theme.text]}>
+                      {formData.monthlySavingsGoal ? `${formData.monthlySavingsGoal} € par mois` : "Définissez un objectif et une date"}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            )}
 
             <View style={styles.formGroup}>
               <Text style={[styles.label, theme.text]}>Taux d'intérêt (% annuel)</Text>
@@ -273,5 +380,29 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    elevation: 2,
+  },
+  dateButtonText: {
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  calculatedSavings: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    elevation: 2,
+  },
+  calculatedSavingsText: {
+    fontSize: 16,
+    marginLeft: 8,
   },
 }); 

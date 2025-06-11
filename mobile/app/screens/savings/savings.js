@@ -41,7 +41,7 @@ export const accountColors = [
   "#ef4444", 
 ];
 
-const calculateSavingsRecommendations = async () => {
+const calculateSavingsRecommendations = async (currentAccounts) => {
   try {
     // Charger les données du formulaire
     const formDataString = await AsyncStorage.getItem('budgetFormData');
@@ -59,11 +59,39 @@ const calculateSavingsRecommendations = async () => {
     // Calculer le montant disponible pour l'épargne
     const availableForSavings = totalIncome - totalExpenses;
 
-    // Règles de répartition de l'épargne
+    // Nouvelle logique de répartition intelligente
+    let emergencyTarget = totalExpenses * 6; // 6 mois de dépenses pour le fonds d'urgence
+    let emergencyAllocation = 0;
+    let goalsAllocation = 0;
+    let leisureAllocation = 0;
+
+    // Si le fonds d'urgence n'est pas encore constitué, prioriser son alimentation
+    const currentEmergencyFund = currentAccounts.find(a => a.name === "Fonds d'urgence")?.balance || 0;
+    const emergencyProgress = currentEmergencyFund / emergencyTarget;
+
+    if (emergencyProgress < 1) {
+      // Allouer plus à l'épargne d'urgence si elle est faible
+      emergencyAllocation = availableForSavings * (0.7 - (emergencyProgress * 0.2));
+      goalsAllocation = availableForSavings * (0.2 + (emergencyProgress * 0.1));
+      leisureAllocation = availableForSavings * (0.1 + (emergencyProgress * 0.1));
+    } else {
+      // Une fois le fonds d'urgence constitué, privilégier les objectifs
+      emergencyAllocation = availableForSavings * 0.2; // Maintien du fonds
+      goalsAllocation = availableForSavings * 0.6;     // Plus pour les objectifs
+      leisureAllocation = availableForSavings * 0.2;   // Équilibre vie/épargne
+    }
+
+    // Calculer le temps estimé pour atteindre les objectifs
+    const timeToEmergencyFund = emergencyAllocation > 0 
+      ? Math.ceil((emergencyTarget - currentEmergencyFund) / emergencyAllocation)
+      : 0;
+
     const recommendations = {
-      emergency: Math.round(availableForSavings * 0.5 * 100) / 100, // 50% pour le fonds d'urgence
-      goals: Math.round(availableForSavings * 0.3 * 100) / 100,     // 30% pour les objectifs
-      leisure: Math.round(availableForSavings * 0.2 * 100) / 100    // 20% pour les loisirs
+      emergency: Math.round(emergencyAllocation * 100) / 100,
+      goals: Math.round(goalsAllocation * 100) / 100,
+      leisure: Math.round(leisureAllocation * 100) / 100,
+      emergencyTarget,
+      timeToEmergencyFund
     };
 
     return {
@@ -140,25 +168,7 @@ export default function SavingsScreen() {
       }
 
       // Calculer les recommandations d'épargne
-      const monthlyBudget = data.monthlyBudget || 0;
-      const totalExpenses = (data.expenses?.rent || 0) + 
-                          (data.expenses?.food || 0) + 
-                          (data.expenses?.transport || 0);
-      const tuitionAmount = data.tuitionAmount || 0;
-      const totalIncome = monthlyBudget;
-      const availableForSavings = totalIncome - totalExpenses - tuitionAmount;
-
-      const recommendations = {
-        totalIncome,
-        totalExpenses: totalExpenses + tuitionAmount,
-        availableForSavings,
-        recommendations: {
-          emergency: Math.round(availableForSavings * 0.5 * 100) / 100,
-          goals: Math.round(availableForSavings * 0.3 * 100) / 100,
-          leisure: Math.round(availableForSavings * 0.2 * 100) / 100
-        }
-      };
-
+      const recommendations = await calculateSavingsRecommendations(accounts);
       console.log('Setting savings recommendations:', recommendations);
       setSavingsRecommendations(recommendations);
 
@@ -188,7 +198,7 @@ export default function SavingsScreen() {
           {
             id: 'checking-' + Date.now(),
             name: "Compte Courant",
-            balance: totalIncome || 0,
+            balance: formattedData.budget || 0,
             accountType: "checking",
             interestRate: 0,
             color: "#8b5cf6",
@@ -237,7 +247,7 @@ export default function SavingsScreen() {
           setFormData(data);
           
           // Créer automatiquement des comptes basés sur les recommandations d'épargne
-          const recommendations = await calculateSavingsRecommendations();
+          const recommendations = await calculateSavingsRecommendations(accounts);
           if (recommendations && accounts.length === 0) {
             const defaultAccounts = [
               {
@@ -417,7 +427,7 @@ export default function SavingsScreen() {
         await AsyncStorage.setItem('budgetFormData', JSON.stringify(formData));
 
         // Mettre à jour les recommandations d'épargne
-        const newRecommendations = await calculateSavingsRecommendations();
+        const newRecommendations = await calculateSavingsRecommendations(accounts);
         setSavingsRecommendations(newRecommendations);
       }
 
@@ -472,8 +482,11 @@ export default function SavingsScreen() {
     if (!savingsRecommendations) return null;
 
     // Calculer les progrès pour chaque objectif
-    const emergencyProgress = accounts.find(a => a.name === "Fonds d'urgence")?.balance || 0;
-    const goalsProgress = accounts.find(a => a.name === "Objectifs")?.balance || 0;
+    const emergencyAccount = accounts.find(a => a.name === "Fonds d'urgence");
+    const goalsAccount = accounts.find(a => a.name === "Objectifs");
+    
+    const emergencyProgress = emergencyAccount?.balance || 0;
+    const goalsProgress = goalsAccount?.balance || 0;
 
     return (
       <View style={[styles.recommendationsContainer, theme.card]}>
@@ -496,17 +509,23 @@ export default function SavingsScreen() {
           <Text style={[styles.recommendationsSubtitle, theme.text]}>
             Progrès des objectifs:
           </Text>
+          
           <View style={styles.progressContainer}>
             <Text style={[styles.recommendationsText, theme.text]}>
-              Fonds d'urgence: {emergencyProgress.toFixed(2)} € / {savingsRecommendations.recommendations.emergency.toFixed(2)} €
+              Fonds d'urgence: {emergencyProgress.toFixed(2)} € / {savingsRecommendations.recommendations.emergencyTarget.toFixed(2)} €
+            </Text>
+            <Text style={[styles.recommendationsSubtext, theme.textSecondary]}>
+              {savingsRecommendations.recommendations.timeToEmergencyFund > 0 
+                ? `Temps estimé pour atteindre l'objectif: ${savingsRecommendations.recommendations.timeToEmergencyFund} mois`
+                : 'Objectif atteint !'}
             </Text>
             <View style={styles.progressBar}>
               <View 
                 style={[
                   styles.progressFill,
                   { 
-                    width: `${Math.min((emergencyProgress / savingsRecommendations.recommendations.emergency) * 100, 100)}%`,
-                    backgroundColor: COLORS.primary
+                    width: `${Math.min((emergencyProgress / savingsRecommendations.recommendations.emergencyTarget) * 100, 100)}%`,
+                    backgroundColor: emergencyAccount?.color || COLORS.primary
                   }
                 ]} 
               />
@@ -515,7 +534,7 @@ export default function SavingsScreen() {
 
           <View style={styles.progressContainer}>
             <Text style={[styles.recommendationsText, theme.text]}>
-              Objectifs: {goalsProgress.toFixed(2)} € / {savingsRecommendations.recommendations.goals.toFixed(2)} €
+              Objectifs: {goalsProgress.toFixed(2)} € / {savingsRecommendations.recommendations.goals.toFixed(2)} € par mois
             </Text>
             <View style={styles.progressBar}>
               <View 
@@ -523,11 +542,26 @@ export default function SavingsScreen() {
                   styles.progressFill,
                   { 
                     width: `${Math.min((goalsProgress / savingsRecommendations.recommendations.goals) * 100, 100)}%`,
-                    backgroundColor: COLORS.primary
+                    backgroundColor: goalsAccount?.color || COLORS.primary
                   }
                 ]} 
               />
             </View>
+          </View>
+
+          <View style={styles.recommendationsTips}>
+            <Text style={[styles.recommendationsSubtitle, theme.text]}>
+              Recommandations mensuelles:
+            </Text>
+            <Text style={[styles.recommendationsText, theme.text]}>
+              • Fonds d'urgence: {savingsRecommendations.recommendations.emergency.toFixed(2)} €
+            </Text>
+            <Text style={[styles.recommendationsText, theme.text]}>
+              • Objectifs: {savingsRecommendations.recommendations.goals.toFixed(2)} €
+            </Text>
+            <Text style={[styles.recommendationsText, theme.text]}>
+              • Loisirs/Flexible: {savingsRecommendations.recommendations.leisure.toFixed(2)} €
+            </Text>
           </View>
         </View>
       </View>
@@ -720,5 +754,12 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  recommendationsSubtext: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  recommendationsTips: {
+    marginTop: 16,
   },
 }); 

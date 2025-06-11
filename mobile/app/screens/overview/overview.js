@@ -8,12 +8,18 @@ import { useCallback } from 'react';
 import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
+import { MaterialIcons } from '@expo/vector-icons';
+
 
 export default function OverviewScreen() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(true);
   const [activeTip, setActiveTip] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [budget, setBudget] = useState(0);
+  const [savingsBalance, setSavingsBalance] = useState(0);
+  const [savedThisMonth, setSavedThisMonth] = useState(0);
+  const [goals, setGoals] = useState([]);
 
   // États pour les données calculées automatiquement
   const [budgetData, setBudgetData] = useState({
@@ -74,13 +80,34 @@ export default function OverviewScreen() {
   ]);
 
   const tips = [
-    "Track your coffee expenses - small savings add up!",
-    "Set a weekly budget for entertainment to avoid overspending",
-    "Use student discounts whenever possible - they add up!",
-    "Plan meals ahead to reduce food delivery expenses",
-    "Consider second-hand textbooks to save on course materials",
-    `Based on your budget, try to save at least 10% each month`,
-    `Your biggest expense is rent (${expenseDetails.rent > 0 ? Math.round((expenseDetails.rent / (budgetData.totalExpenses || 1)) * 100) : 0}% of total expenses)`,
+    "Suivez vos dépenses quotidiennes - les petites économies s'accumulent !",
+    "Fixez un budget hebdomadaire pour les loisirs pour éviter les dépenses excessives",
+    "Utilisez les réductions étudiantes quand c'est possible - elles s'additionnent !",
+    "Planifiez vos repas à l'avance pour réduire les dépenses de livraison",
+    "Envisagez les manuels d'occasion pour économiser sur le matériel de cours",
+    `Basé sur votre budget, essayez d'épargner au moins ${Math.round((budgetData.saved / (budgetData.totalIncome || 1)) * 100)}% chaque mois`,
+    `Votre plus grosse dépense est ${
+      Object.entries(expenseDetails)
+        .sort(([,a], [,b]) => b - a)[0][0] === 'rent' ? 'le loyer' :
+      Object.entries(expenseDetails)
+        .sort(([,a], [,b]) => b - a)[0][0] === 'food' ? 'l\'alimentation' :
+      Object.entries(expenseDetails)
+        .sort(([,a], [,b]) => b - a)[0][0] === 'transport' ? 'le transport' :
+      Object.entries(expenseDetails)
+        .sort(([,a], [,b]) => b - a)[0][0] === 'tuitionAmount' ? 'les frais de scolarité' : 'autre'
+    } (${Math.round((Object.entries(expenseDetails).sort(([,a], [,b]) => b - a)[0][1] / (budgetData.totalExpenses || 1)) * 100)}% des dépenses)`,
+    `Conseil personnalisé: ${
+      budgetData.saved < 0 ? "Vos dépenses dépassent votre budget. Essayez de réduire les dépenses non essentielles." :
+      budgetData.saved < (budgetData.totalIncome * 0.1) ? "Vous épargnez moins de 10% de vos revenus. Essayez d'identifier des domaines où vous pourriez réduire vos dépenses." :
+      budgetData.saved < (budgetData.totalIncome * 0.2) ? "Bon début ! Vous épargnez plus de 10% de vos revenus. Continuez ainsi !" :
+      "Excellent ! Vous avez un très bon taux d'épargne. Pensez à diversifier vos investissements."
+    }`,
+    `${
+      expenseDetails.food > (budgetData.totalIncome * 0.3) ? "Vos dépenses alimentaires semblent élevées. Envisagez de cuisiner plus souvent à la maison." :
+      expenseDetails.transport > (budgetData.totalIncome * 0.2) ? "Vos frais de transport sont significatifs. Explorez les options de transport en commun ou de covoiturage." :
+      expenseDetails.rent > (budgetData.totalIncome * 0.4) ? "Votre loyer représente une part importante de votre budget. Envisagez la colocation ou un logement moins cher si possible." :
+      "Votre répartition des dépenses est équilibrée. Continuez à suivre votre budget !"
+    }`
   ];
 
 const loadBudgetData = useCallback(async () => {
@@ -131,7 +158,7 @@ const loadBudgetData = useCallback(async () => {
       return totals;
     }, { rent: 0, food: 0, transport: 0, tuitionAmount: 0, other: 0 });
 
-    // Fusionner avec les données du formulaire (les données du formulaire ont la priorité de base)
+    // Fusionner avec les données du formulaire
     const combinedData = {
       budget: parseFloat(budgetFormData.budget) || 0,
       hasTuition: budgetFormData.hasTuition || false,
@@ -140,10 +167,41 @@ const loadBudgetData = useCallback(async () => {
       transport: (parseFloat(budgetFormData.transport) || 0) + expenseTotals.transport,
       tuitionAmount: (parseFloat(budgetFormData.tuitionAmount) || 0) + expenseTotals.tuitionAmount,
       other: (parseFloat(budgetFormData.other) || 0) + expenseTotals.other,
+      saved: parseFloat(budgetFormData.saved) || 0
     };
 
-    // Afficher les données combinées
-    updateBudgetDisplay(combinedData);
+    // Calculer les totaux
+    const totalExpenses = combinedData.rent + combinedData.food + combinedData.transport + 
+                         combinedData.tuitionAmount + combinedData.other;
+    const remaining = Math.max(0, combinedData.budget - totalExpenses);
+
+    // Mettre à jour l'affichage
+    setBudgetData({
+      spent: totalExpenses,
+      saved: combinedData.saved,
+      budget: combinedData.budget,
+      totalExpenses: totalExpenses,
+      totalIncome: combinedData.budget,
+      remaining: remaining
+    });
+
+    setExpenseDetails({
+      rent: combinedData.rent,
+      food: combinedData.food,
+      transport: combinedData.transport,
+      tuitionAmount: combinedData.tuitionAmount,
+      other: combinedData.other
+    });
+
+    // Sauvegarder les données combinées pour l'Overview
+    await AsyncStorage.setItem('budgetData', JSON.stringify({
+      spent: totalExpenses,
+      saved: combinedData.saved,
+      budget: combinedData.budget,
+      totalExpenses: totalExpenses,
+      totalIncome: combinedData.budget,
+      remaining: remaining
+    }));
 
     // Essayer de synchroniser avec le serveur
     const token = await AsyncStorage.getItem('token');
@@ -177,6 +235,15 @@ const loadBudgetData = useCallback(async () => {
         console.log('Utilisation des données locales uniquement');
       }
     }
+
+    // Charger les soldes
+    const mainBalanceStr = await AsyncStorage.getItem('mainBalance');
+    const savingsBalanceStr = await AsyncStorage.getItem('savingsBalance');
+    const goalsStr = await AsyncStorage.getItem('goals');
+
+    setBudget(parseFloat(mainBalanceStr) || 0);
+    setSavingsBalance(parseFloat(savingsBalanceStr) || 0);
+    setGoals(JSON.parse(goalsStr) || []);
 
   } catch (error) {
     console.error('Erreur lors du chargement des données:', error);
@@ -299,6 +366,40 @@ const updateBudgetDisplay = (data) => {
   const handleRefresh = async () => {
     await loadBudgetData();
     Alert.alert('Actualisé', 'Les données ont été mises à jour');
+  };
+
+  const calculateTotalProgress = () => {
+    if (goals.length === 0) return 0;
+    const totalProgress = goals.reduce((sum, goal) => {
+      const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
+      return sum + progress;
+    }, 0);
+    return (totalProgress / goals.length).toFixed(1);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Charger le budget depuis le formulaire
+      const budgetData = await AsyncStorage.getItem('budget');
+      if (budgetData) {
+        const parsedBudget = JSON.parse(budgetData);
+        setBudget(parseFloat(parsedBudget.amount) || 0);
+        setSavedThisMonth(parseFloat(parsedBudget.saved) || 0);
+      }
+
+      // Charger le compte épargne et les objectifs
+      const savingsBalanceStr = await AsyncStorage.getItem('savingsBalance');
+      const goalsStr = await AsyncStorage.getItem('goals');
+
+      setSavingsBalance(parseFloat(savingsBalanceStr) || 0);
+      setGoals(JSON.parse(goalsStr) || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
   };
 
   return (
@@ -587,6 +688,78 @@ const updateBudgetDisplay = (data) => {
             ))}
           </View>
         </View>
+
+        <View style={styles.balanceSection}>
+          <View style={[styles.balanceCard, theme.card]}>
+            <View style={styles.balanceHeader}>
+              <MaterialIcons name="account-balance-wallet" size={24} color={COLORS.primary} />
+              <Text style={[styles.balanceTitle, theme.text]}>Budget Disponible</Text>
+            </View>
+            <Text style={[styles.balanceAmount, theme.text]}>{budget.toFixed(2)} DH</Text>
+          </View>
+
+          <View style={[styles.balanceCard, theme.card]}>
+            <View style={styles.balanceHeader}>
+              <MaterialIcons name="savings" size={24} color={COLORS.primary} />
+              <Text style={[styles.balanceTitle, theme.text]}>Épargne Totale</Text>
+            </View>
+            <Text style={[styles.balanceAmount, theme.text]}>{savingsBalance.toFixed(2)} DH</Text>
+          </View>
+        </View>
+
+        <View style={[styles.monthlySavingsCard, theme.card]}>
+          <View style={styles.monthlySavingsHeader}>
+            <MaterialIcons name="calendar-today" size={24} color={COLORS.primary} />
+            <Text style={[styles.monthlySavingsTitle, theme.text]}>Épargné ce mois-ci</Text>
+          </View>
+          <Text style={[styles.monthlySavingsAmount, theme.text]}>{savedThisMonth.toFixed(2)} DH</Text>
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${Math.min((savedThisMonth / budget) * 100, 100)}%` }
+              ]} 
+            />
+          </View>
+        </View>
+
+        <View style={[styles.goalsOverview, theme.card]}>
+          <View style={styles.goalsHeader}>
+            <MaterialIcons name="flag" size={24} color={COLORS.primary} />
+            <Text style={[styles.sectionTitle, theme.text]}>Objectifs d'épargne</Text>
+          </View>
+          
+          <View style={styles.goalsStats}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, theme.textSecondary]}>Objectifs actifs</Text>
+              <Text style={[styles.statValue, theme.text]}>{goals.length}</Text>
+            </View>
+            
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, theme.textSecondary]}>Progression moyenne</Text>
+              <Text style={[styles.statValue, theme.text]}>{calculateTotalProgress()}%</Text>
+            </View>
+          </View>
+
+          {goals.map(goal => (
+            <View key={goal.id} style={styles.goalItem}>
+              <View style={styles.goalInfo}>
+                <Text style={[styles.goalTitle, theme.text]}>{goal.title}</Text>
+                <Text style={[styles.goalProgress, theme.textSecondary]}>
+                  {parseFloat(goal.currentAmount).toFixed(2)} / {parseFloat(goal.targetAmount).toFixed(2)} DH
+                </Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min((parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100, 100)}%` }
+                  ]} 
+                />
+              </View>
+            </View>
+          ))}
+        </View>
       </ScrollView>
 
       <BottomNav activeTab="overview" darkMode={darkMode} />
@@ -851,5 +1024,99 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: COLORS.primary + '20',
+  },
+  balanceSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  balanceCard: {
+    flex: 1,
+    margin: 8,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  balanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  balanceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  balanceAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  goalsOverview: {
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  goalsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  goalsStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  goalInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  goalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
+  monthlySavingsCard: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  monthlySavingsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  monthlySavingsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  monthlySavingsAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 8,
   },
 }); 
