@@ -129,11 +129,13 @@ def token_required(f):
         
     return decorated
 
-# Créer une collection pour les budgets
+# Créer une collection pour les budgets et les dépenses
 if db is not None:
     budgets_collection = db['budgets']
+    expenses_collection = db['expenses']
 else:
     budgets_collection = None
+    expenses_collection = None
 
 # Route pour sauvegarder les données du formulaire
 @app.route('/api/users/save_budget_data', methods=['POST'])
@@ -158,7 +160,7 @@ def save_budget_data(current_user):
             'transport': float(data['transport'])
         },
         'tuitionAmount': float(data.get('tuitionAmount', 0)),
-        'updatedAt': datetime.utcnow()
+        'updatedAt': datetime.datetime.utcnow()
     }
     
     # Upsert (insert or update)
@@ -190,6 +192,53 @@ def get_budget_data(current_user):
     budget_data['_id'] = str(budget_data['_id'])
     
     return jsonify(budget_data), 200
+
+# Route pour sauvegarder les dépenses
+@app.route('/api/users/save_expenses', methods=['POST'])
+@token_required
+def save_expenses(current_user):
+    if expenses_collection is None:
+        return jsonify({'message': 'Database connection error'}), 503
+        
+    data = request.get_json()
+    
+    if not data or 'expenses' not in data:
+        return jsonify({'message': 'Missing expenses data'}), 400
+    
+    expenses_data = {
+        'userId': str(current_user['_id']),
+        'expenses': data['expenses'],
+        'updatedAt': datetime.datetime.utcnow()
+    }
+    
+    # Upsert (insert or update)
+    result = expenses_collection.update_one(
+        {'userId': str(current_user['_id'])},
+        {'$set': expenses_data},
+        upsert=True
+    )
+    
+    return jsonify({
+        'message': 'Expenses saved successfully',
+        'data': expenses_data
+    }), 200
+
+# Route pour récupérer les dépenses
+@app.route('/api/users/get_expenses', methods=['GET'])
+@token_required
+def get_expenses(current_user):
+    if expenses_collection is None:
+        return jsonify({'message': 'Database connection error'}), 503
+    
+    # Récupérer les dépenses de l'utilisateur
+    expenses = expenses_collection.find_one({'userId': str(current_user['_id'])})
+    
+    if expenses:
+        # Supprimer l'ID MongoDB pour la sérialisation JSON
+        expenses.pop('_id', None)
+        return jsonify(expenses), 200
+    else:
+        return jsonify({'message': 'No expenses found', 'expenses': []}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
