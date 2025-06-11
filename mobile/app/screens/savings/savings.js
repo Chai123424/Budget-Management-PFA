@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,12 @@ import {
   StyleSheet,
   Platform,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Plus, Filter, Download } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
@@ -205,11 +208,21 @@ export default function SavingsScreen() {
     }
   };
 
-  // Charger les données depuis AsyncStorage
-  useEffect(() => {
-    loadData();
-    loadFormData();
-  }, []);
+  // Charger les données quand l'écran devient visible
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        await loadBudgetDataFromServer();
+        await loadData();
+        await loadFormData();
+      };
+      fetchData();
+      
+      return () => {
+        // Cleanup si nécessaire
+      };
+    }, [])
+  );
 
   const loadFormData = async () => {
     try {
@@ -311,34 +324,14 @@ export default function SavingsScreen() {
 
   const loadData = async () => {
     try {
-      // Charger les données sauvegardées
-      const savedData = await AsyncStorage.getItem('savedUserData');
-      const parsedSavedData = savedData ? JSON.parse(savedData) : {};
-      
-      // Charger les comptes
       const savedAccounts = await AsyncStorage.getItem("savingsAccounts");
       if (savedAccounts) {
         setAccounts(JSON.parse(savedAccounts));
-      } else if (parsedSavedData.savingsAccounts) {
-        // Restaurer depuis les données sauvegardées
-        setAccounts(parsedSavedData.savingsAccounts);
-        await AsyncStorage.setItem("savingsAccounts", JSON.stringify(parsedSavedData.savingsAccounts));
       }
 
-      // Charger les transactions
       const savedTransactions = await AsyncStorage.getItem("savingsTransactions");
       if (savedTransactions) {
         setTransactions(JSON.parse(savedTransactions));
-      } else if (parsedSavedData.savingsTransactions) {
-        // Restaurer depuis les données sauvegardées
-        setTransactions(parsedSavedData.savingsTransactions);
-        await AsyncStorage.setItem("savingsTransactions", JSON.stringify(parsedSavedData.savingsTransactions));
-      }
-
-      // Charger les recommandations
-      const recommendations = await calculateSavingsRecommendations();
-      if (recommendations) {
-        setSavingsRecommendations(recommendations);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);

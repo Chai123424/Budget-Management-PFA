@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Catégories de dépenses prédéfinies
 const categories = [
@@ -128,45 +129,137 @@ export default function ExpensesScreen() {
 
   const loadExpenses = async () => {
     try {
-      // D'abord essayer de charger depuis le serveur
-      const serverData = await loadBudgetDataFromServer();
+      // Charger les dépenses depuis AsyncStorage
+      const savedExpenses = await AsyncStorage.getItem('expenses');
+      const parsedExpenses = savedExpenses ? JSON.parse(savedExpenses) : [];
       
-      if (!serverData) {
-        // Si pas de données du serveur, essayer de charger depuis le stockage local
-        const savedExpenses = await AsyncStorage.getItem('expenses');
-        if (savedExpenses) {
-          setExpenses(JSON.parse(savedExpenses));
+      // Charger les données du formulaire
+      const formDataString = await AsyncStorage.getItem('budgetFormData');
+      const formData = formDataString ? JSON.parse(formDataString) : {};
+      
+      // Créer un tableau de dépenses basé sur les données du formulaire
+      const formExpenses = [
+        {
+          id: 'rent',
+          category: 'Loyer',
+          amount: parseFloat(formData.rent) || 0,
+          icon: 'home',
+          color: '#FF6B6B'
+        },
+        {
+          id: 'food',
+          category: 'Alimentation',
+          amount: parseFloat(formData.food) || 0,
+          icon: 'restaurant',
+          color: '#4CAF50'
+        },
+        {
+          id: 'transport',
+          category: 'Transport',
+          amount: parseFloat(formData.transport) || 0,
+          icon: 'directions-bus',
+          color: '#2196F3'
+        },
+        {
+          id: 'tuition',
+          category: 'Frais de scolarité',
+          amount: parseFloat(formData.tuitionAmount) || 0,
+          icon: 'school',
+          color: '#9C27B0'
         }
-      }
+      ].filter(expense => expense.amount > 0);
+
+      // Fusionner les dépenses du formulaire avec les dépenses sauvegardées
+      const allExpenses = [...formExpenses, ...parsedExpenses];
+      setExpenses(allExpenses);
     } catch (error) {
       console.error('Erreur lors du chargement des dépenses:', error);
     }
   };
 
-  // Sauvegarder les dépenses dans AsyncStorage
-  const saveExpenses = async (newExpenses) => {
-    try {
-      await AsyncStorage.setItem('expenses', JSON.stringify(newExpenses));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des dépenses:', error);
-    }
-  };
+const handleAddExpense = async () => {
+  if (!newExpense.category || !newExpense.amount) {
+    Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+    return;
+  }
 
-  const handleAddExpense = () => {
-    if (!newExpense.category || !newExpense.amount) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
+  try {
+    // 1. Créer la nouvelle dépense
     const expenseToAdd = {
       id: Date.now().toString(),
       category: newExpense.category,
       amount: parseFloat(newExpense.amount),
       icon: getCategoryIcon(newExpense.category),
-      color: getCategoryColor(newExpense.category)
+      color: getCategoryColor(newExpense.category),
+      date: new Date().toISOString(),
+      title: newExpense.title || newExpense.category,
+      description: newExpense.description
     };
 
-    setExpenses(prev => [...prev, expenseToAdd]);
+    // 2. Charger les dépenses existantes
+    const savedExpenses = await AsyncStorage.getItem('expenses');
+    const parsedExpenses = savedExpenses ? JSON.parse(savedExpenses) : [];
+    
+    // 3. Ajouter la nouvelle dépense
+    const updatedExpenses = [...parsedExpenses, expenseToAdd];
+    
+    // 4. Sauvegarder dans AsyncStorage
+    await AsyncStorage.setItem('expenses', JSON.stringify(updatedExpenses));
+
+    // 5. Mettre à jour les données du formulaire budgétaire
+    const formDataString = await AsyncStorage.getItem('budgetFormData');
+    let formData = formDataString ? JSON.parse(formDataString) : {};
+    
+    // Mettre à jour la catégorie appropriée en ajoutant le montant
+    const amount = parseFloat(newExpense.amount);
+    switch (newExpense.category) {
+      case 'Loyer':
+        formData.rent = (parseFloat(formData.rent) || 0) + amount;
+        break;
+      case 'Alimentation':
+        formData.food = (parseFloat(formData.food) || 0) + amount;
+        break;
+      case 'Transport':
+        formData.transport = (parseFloat(formData.transport) || 0) + amount;
+        break;
+      case 'Frais de scolarité':
+        formData.tuitionAmount = (parseFloat(formData.tuitionAmount) || 0) + amount;
+        formData.hasTuition = 'yes';
+        break;
+      default:
+        // Pour les autres catégories, on peut les ajouter à un champ "autres"
+        formData.other = (parseFloat(formData.other) || 0) + amount;
+        break;
+    }
+
+    // 6. Sauvegarder les données du formulaire mises à jour
+    await AsyncStorage.setItem('budgetFormData', JSON.stringify(formData));
+
+    // 7. Envoyer les données au serveur
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      const API_BASE_URL = 'http://10.0.2.2:5000/api';
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/save_budget_data`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          console.error('Erreur lors de la sauvegarde sur le serveur:', response.status);
+        } else {
+          console.log('Données synchronisées avec le serveur');
+        }
+      } catch (serverError) {
+        console.error('Erreur de connexion au serveur:', serverError);
+      }
+    }
+
+    // 8. Réinitialiser le formulaire
     setShowAddModal(false);
     setNewExpense({
       title: "",
@@ -175,12 +268,23 @@ export default function ExpensesScreen() {
       date: new Date().toISOString().split('T')[0],
       description: ""
     });
-  };
+
+    // 9. Recharger les dépenses
+    await loadExpenses();
+
+    // 10. Afficher un message de confirmation
+    Alert.alert('Succès', 'Dépense ajoutée avec succès !');
+
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de la dépense:', error);
+    Alert.alert('Erreur', 'Une erreur est survenue lors de l\'ajout de la dépense');
+  }
+};
 
   const handleDeleteExpense = async (id) => {
     const updatedExpenses = expenses.filter((expense) => expense.id !== id);
     setExpenses(updatedExpenses);
-    await saveExpenses(updatedExpenses);
+    await AsyncStorage.setItem('expenses', JSON.stringify(updatedExpenses));
   };
 
   const getCategoryIcon = (category) => {
@@ -265,6 +369,13 @@ export default function ExpensesScreen() {
       return '';
     }
   };
+
+  // Ajouter useFocusEffect pour recharger les dépenses quand l'écran devient actif
+  useFocusEffect(
+    useCallback(() => {
+      loadExpenses();
+    }, [])
+  );
 
   return (
     <View style={[styles.container, theme.container]}>

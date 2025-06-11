@@ -83,137 +83,158 @@ export default function OverviewScreen() {
     `Your biggest expense is rent (${expenseDetails.rent > 0 ? Math.round((expenseDetails.rent / (budgetData.totalExpenses || 1)) * 100) : 0}% of total expenses)`,
   ];
 
-  const loadBudgetData = useCallback(async () => {
-    if (loading) return; // Éviter les appels multiples
+const loadBudgetData = useCallback(async () => {
+  if (loading) return;
+  
+  setLoading(true);
+  try {
+    const API_BASE_URL = 'http://10.0.2.2:5000/api';
     
-    setLoading(true);
-    try {
-      const API_BASE_URL = 'http://10.0.2.2:5000/api';
-      
-      // Charger les données de l'utilisateur connecté
-      const userData = await AsyncStorage.getItem('userData');
-      const token = await AsyncStorage.getItem('token');
-      
-      // Charger d'abord les données locales
-      const localBudgetData = await AsyncStorage.getItem('budgetFormData');
-      const localUserData = await AsyncStorage.getItem('userData');
-      
-      // Charger les informations utilisateur
-      if (localUserData) {
-        const user = JSON.parse(localUserData);
-        console.log("User data loaded:", user);
-        setUserInfo({
-          firstName: user.name || user.firstName || 'Guest',
-          lastName: user.lastName || ''
-        });
-      }
-
-      // Si on a des données locales, les afficher immédiatement
-      if (localBudgetData) {
-        const localData = JSON.parse(localBudgetData);
-        console.log('Données locales chargées:', localData);
-        updateBudgetDisplay(localData);
-      }
-
-      // Essayer de récupérer les données du serveur si on a un token
-      if (token) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const serverData = await response.json();
-            console.log('Données du serveur récupérées:', serverData);
-            
-            // Convertir les données du serveur au format local
-            const formattedData = {
-              budget: serverData.monthlyBudget || 0,
-              hasTuition: serverData.hasTuition || false,
-              tuitionAmount: serverData.tuitionAmount || 0,
-              rent: serverData.expenses?.rent || 0,
-              food: serverData.expenses?.food || 0,
-              transport: serverData.expenses?.transport || 0,
-            };
-
-            // Mettre à jour l'affichage avec les données du serveur
-            updateBudgetDisplay(formattedData);
-            
-            // Sauvegarder les nouvelles données localement
-            await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-            
-            console.log('Données synchronisées avec le serveur');
-          } else if (response.status === 404) {
-            console.log('Aucune donnée trouvée sur le serveur, utilisation des données locales');
-          } else {
-            console.log('Erreur serveur:', response.status);
-          }
-        } catch (serverError) {
-          console.log('Erreur de connexion au serveur:', serverError);
-          // On continue avec les données locales
-        }
-      } else {
-        console.log('Aucun token trouvé, utilisation des données locales uniquement');
-      }
-
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
-    } finally {
-      setLoading(false);
+    // Charger les informations utilisateur
+    const localUserData = await AsyncStorage.getItem('userData');
+    if (localUserData) {
+      const user = JSON.parse(localUserData);
+      setUserInfo({
+        firstName: user.name || user.firstName || 'Guest',
+        lastName: user.lastName || ''
+      });
     }
-  }, [loading]);
+
+    // Charger les données du formulaire budgétaire
+    const localBudgetData = await AsyncStorage.getItem('budgetFormData');
+    let budgetFormData = localBudgetData ? JSON.parse(localBudgetData) : {};
+
+    // Charger les dépenses individuelles ajoutées
+    const savedExpenses = await AsyncStorage.getItem('expenses');
+    const individualExpenses = savedExpenses ? JSON.parse(savedExpenses) : [];
+
+    // Calculer les totaux par catégorie à partir des dépenses individuelles
+    const expenseTotals = individualExpenses.reduce((totals, expense) => {
+      const amount = parseFloat(expense.amount) || 0;
+      switch (expense.category) {
+        case 'Loyer':
+          totals.rent += amount;
+          break;
+        case 'Alimentation':
+          totals.food += amount;
+          break;
+        case 'Transport':
+          totals.transport += amount;
+          break;
+        case 'Frais de scolarité':
+          totals.tuitionAmount += amount;
+          break;
+        default:
+          totals.other += amount;
+          break;
+      }
+      return totals;
+    }, { rent: 0, food: 0, transport: 0, tuitionAmount: 0, other: 0 });
+
+    // Fusionner avec les données du formulaire (les données du formulaire ont la priorité de base)
+    const combinedData = {
+      budget: parseFloat(budgetFormData.budget) || 0,
+      hasTuition: budgetFormData.hasTuition || false,
+      rent: (parseFloat(budgetFormData.rent) || 0) + expenseTotals.rent,
+      food: (parseFloat(budgetFormData.food) || 0) + expenseTotals.food,
+      transport: (parseFloat(budgetFormData.transport) || 0) + expenseTotals.transport,
+      tuitionAmount: (parseFloat(budgetFormData.tuitionAmount) || 0) + expenseTotals.tuitionAmount,
+      other: (parseFloat(budgetFormData.other) || 0) + expenseTotals.other,
+    };
+
+    // Afficher les données combinées
+    updateBudgetDisplay(combinedData);
+
+    // Essayer de synchroniser avec le serveur
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const serverData = await response.json();
+          
+          // Utiliser les données du serveur comme base et ajouter les dépenses locales
+          const serverFormattedData = {
+            budget: serverData.monthlyBudget || 0,
+            hasTuition: serverData.hasTuition || false,
+            rent: (serverData.expenses?.rent || 0) + expenseTotals.rent,
+            food: (serverData.expenses?.food || 0) + expenseTotals.food,
+            transport: (serverData.expenses?.transport || 0) + expenseTotals.transport,
+            tuitionAmount: (serverData.tuitionAmount || 0) + expenseTotals.tuitionAmount,
+            other: expenseTotals.other,
+          };
+
+          updateBudgetDisplay(serverFormattedData);
+        }
+      } catch (serverError) {
+        console.log('Utilisation des données locales uniquement');
+      }
+    }
+
+  } catch (error) {
+    console.error('Erreur lors du chargement des données:', error);
+  } finally {
+    setLoading(false);
+  }
+}, [loading]);
 
   // Fonction pour mettre à jour l'affichage avec les données
-  const updateBudgetDisplay = (data) => {
-    const monthlyBudget = parseFloat(data.budget) || 0;
-    const rent = parseFloat(data.rent) || 0;
-    const food = parseFloat(data.food) || 0;
-    const transport = parseFloat(data.transport) || 0;
-    const tuitionAmount = parseFloat(data.tuitionAmount) || 0;
-    
-    const totalExpenses = rent + food + transport;
-    const totalSpent = totalExpenses + tuitionAmount;
-    const remaining = monthlyBudget - totalSpent;
-    
-    setBudgetData({
-      spent: totalSpent,
-      saved: remaining > 0 ? remaining : 0,
-      budget: monthlyBudget,
-      totalExpenses: totalSpent,
-      totalIncome: monthlyBudget,
-      remaining: remaining
-    });
+const updateBudgetDisplay = (data) => {
+  const monthlyBudget = parseFloat(data.budget) || 0;
+  const rent = parseFloat(data.rent) || 0;
+  const food = parseFloat(data.food) || 0;
+  const transport = parseFloat(data.transport) || 0;
+  const tuitionAmount = parseFloat(data.tuitionAmount) || 0;
+  const other = parseFloat(data.other) || 0;
+  
+  const totalExpenses = rent + food + transport + other;
+  const totalSpent = totalExpenses + tuitionAmount;
+  const remaining = monthlyBudget - totalSpent;
+  
+  setBudgetData({
+    spent: totalSpent,
+    saved: remaining > 0 ? remaining : 0,
+    budget: monthlyBudget,
+    totalExpenses: totalSpent,
+    totalIncome: monthlyBudget,
+    remaining: remaining
+  });
 
-    setExpenseDetails({
-      rent: rent,
-      food: food,
-      transport: transport,
-      tuitionAmount: tuitionAmount
-    });
+  setExpenseDetails({
+    rent: rent,
+    food: food,
+    transport: transport,
+    tuitionAmount: tuitionAmount,
+    other: other
+  });
 
-    // Mettre à jour les paiements récurrents
-    setRecurringPayments(prev => prev.map(payment => {
-      if (payment.title === 'Loyer') return { ...payment, amount: rent };
-      if (payment.title === 'Transport') return { ...payment, amount: transport };
-      return payment;
-    }));
+  // Mettre à jour les paiements récurrents
+  setRecurringPayments(prev => prev.map(payment => {
+    if (payment.title === 'Loyer') return { ...payment, amount: rent };
+    if (payment.title === 'Transport') return { ...payment, amount: transport };
+    return payment;
+  }));
 
-    // Mettre à jour les objectifs à court terme
-    setShortTermGoals(prev => prev.map(goal => {
-      if (goal.title === "Fonds d'urgence") {
-        return { 
-          ...goal, 
-          target: monthlyBudget * 3, 
-          current: remaining > 0 ? remaining : 0 
-        };
-      }
-      return goal;
-    }));
-  };
+  // Mettre à jour les objectifs à court terme
+  setShortTermGoals(prev => prev.map(goal => {
+    if (goal.title === "Fonds d'urgence") {
+      return { 
+        ...goal, 
+        target: monthlyBudget * 3, 
+        current: remaining > 0 ? remaining : 0 
+      };
+    }
+    return goal;
+  }));
+};
+
 
   // Charger les données quand l'écran devient visible
   useFocusEffect(
@@ -222,13 +243,13 @@ export default function OverviewScreen() {
         await loadBudgetData();
       };
       fetchData();
+      
+      // Cette fonction sera appelée quand l'écran perd le focus
+      return () => {
+        // Cleanup si nécessaire
+      };
     }, [])
   );
-
-  // Charger au montage du composant
-  useEffect(() => {
-    loadBudgetData();
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
