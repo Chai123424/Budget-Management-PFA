@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { CreditCard, Wallet, DollarSign, ArrowUpRight, Lightbulb, Clock, ArrowDown, ArrowUp, Calendar, Target, AlertTriangle } from "lucide-react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
@@ -11,7 +13,7 @@ export default function OverviewScreen() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(true);
   const [activeTip, setActiveTip] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // États pour les données calculées automatiquement
   const [budgetData, setBudgetData] = useState({
@@ -33,23 +35,23 @@ export default function OverviewScreen() {
 
   // État pour les informations utilisateur
   const [userInfo, setUserInfo] = useState({
-    firstName: 'Utilisateur',
+    firstName: 'Guest',
     lastName: ''
   });
 
-  const [recurringPayments] = useState([
-    { id: 1, title: 'Loyer', amount: expenseDetails.rent, dueDay: 5, isPaid: false },
+  const [recurringPayments, setRecurringPayments] = useState([
+    { id: 1, title: 'Loyer', amount: 0, dueDay: 5, isPaid: false },
     { id: 2, title: 'Internet', amount: 29.99, dueDay: 15, isPaid: true },
-    { id: 3, title: 'Transport', amount: expenseDetails.transport, dueDay: 20, isPaid: false },
+    { id: 3, title: 'Transport', amount: 0, dueDay: 20, isPaid: false },
     { id: 4, title: 'Assurance', amount: 45, dueDay: 28, isPaid: true },
   ]);
 
-  const [shortTermGoals] = useState([
+  const [shortTermGoals, setShortTermGoals] = useState([
     { 
       id: 1, 
       title: "Fonds d'urgence", 
-      target: budgetData.budget * 3, 
-      current: budgetData.saved,
+      target: 0, 
+      current: 0,
       deadline: "3 mois",
       priority: "high"
     },
@@ -78,85 +80,152 @@ export default function OverviewScreen() {
     "Plan meals ahead to reduce food delivery expenses",
     "Consider second-hand textbooks to save on course materials",
     `Based on your budget, try to save at least 10% each month`,
-    `Your biggest expense is rent (${Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100)}% of total expenses)`,
+    `Your biggest expense is rent (${expenseDetails.rent > 0 ? Math.round((expenseDetails.rent / (budgetData.totalExpenses || 1)) * 100) : 0}% of total expenses)`,
   ];
 
-  const loadBudgetData = async () => {
+  const loadBudgetData = useCallback(async () => {
+    if (loading) return; // Éviter les appels multiples
+    
+    setLoading(true);
     try {
+      const API_BASE_URL = 'http://10.0.2.2:5000/api';
+      
       // Charger les données de l'utilisateur connecté
       const userData = await AsyncStorage.getItem('userData');
-      const token = await AsyncStorage.getItem('authToken');
-      const API_BASE_URL = 'http://10.0.2.2:5000/api';
-
-      // Récupérer les informations de l'utilisateur
-      if (userData) {
-        const user = JSON.parse(userData);
+      const token = await AsyncStorage.getItem('token');
+      
+      // Charger d'abord les données locales
+      const localBudgetData = await AsyncStorage.getItem('budgetFormData');
+      const localUserData = await AsyncStorage.getItem('userData');
+      
+      // Charger les informations utilisateur
+      if (localUserData) {
+        const user = JSON.parse(localUserData);
+        console.log("User data loaded:", user);
         setUserInfo({
-          firstName: user.name || 'Utilisateur',
+          firstName: user.name || user.firstName || 'Guest',
           lastName: user.lastName || ''
         });
       }
 
-      // Charger les données depuis le serveur
-      if (token) {
-        const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Données du serveur:', data);
-          
-          // Mettre à jour les données du budget
-          const monthlyBudget = data.data.monthlyBudget || 0;
-          const totalExpenses = (data.data.expenses.rent || 0) + 
-                              (data.data.expenses.food || 0) + 
-                              (data.data.expenses.transport || 0);
-          const tuitionAmount = data.data.tuitionAmount || 0;
-          const totalIncome = monthlyBudget;
-          const remaining = totalIncome - totalExpenses - tuitionAmount;
-          
-          setBudgetData({
-            spent: totalExpenses + tuitionAmount,
-            saved: remaining > 0 ? remaining : 0,
-            budget: totalIncome,
-            totalExpenses: totalExpenses + tuitionAmount,
-            totalIncome: totalIncome,
-            remaining: remaining
-          });
-
-          // Mettre à jour les détails des dépenses
-          setExpenseDetails({
-            rent: data.data.expenses.rent || 0,
-            food: data.data.expenses.food || 0,
-            transport: data.data.expenses.transport || 0,
-            tuitionAmount: data.data.tuitionAmount || 0
-          });
-
-          // Sauvegarder les données dans AsyncStorage
-          const formattedData = {
-            budget: monthlyBudget,
-            hasTuition: data.data.hasTuition || 'no',
-            tuitionAmount: data.data.tuitionAmount || 0,
-            rent: data.data.expenses.rent || 0,
-            food: data.data.expenses.food || 0,
-            transport: data.data.expenses.transport || 0,
-          };
-          await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-          if (data.data.analysis) {
-            await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
-          }
-        }
+      // Si on a des données locales, les afficher immédiatement
+      if (localBudgetData) {
+        const localData = JSON.parse(localBudgetData);
+        console.log('Données locales chargées:', localData);
+        updateBudgetDisplay(localData);
       }
+
+      // Essayer de récupérer les données du serveur si on a un token
+      if (token) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const serverData = await response.json();
+            console.log('Données du serveur récupérées:', serverData);
+            
+            // Convertir les données du serveur au format local
+            const formattedData = {
+              budget: serverData.monthlyBudget || 0,
+              hasTuition: serverData.hasTuition || false,
+              tuitionAmount: serverData.tuitionAmount || 0,
+              rent: serverData.expenses?.rent || 0,
+              food: serverData.expenses?.food || 0,
+              transport: serverData.expenses?.transport || 0,
+            };
+
+            // Mettre à jour l'affichage avec les données du serveur
+            updateBudgetDisplay(formattedData);
+            
+            // Sauvegarder les nouvelles données localement
+            await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
+            
+            console.log('Données synchronisées avec le serveur');
+          } else if (response.status === 404) {
+            console.log('Aucune donnée trouvée sur le serveur, utilisation des données locales');
+          } else {
+            console.log('Erreur serveur:', response.status);
+          }
+        } catch (serverError) {
+          console.log('Erreur de connexion au serveur:', serverError);
+          // On continue avec les données locales
+        }
+      } else {
+        console.log('Aucun token trouvé, utilisation des données locales uniquement');
+      }
+
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
+    } finally {
+      setLoading(false);
     }
+  }, [loading]);
+
+  // Fonction pour mettre à jour l'affichage avec les données
+  const updateBudgetDisplay = (data) => {
+    const monthlyBudget = parseFloat(data.budget) || 0;
+    const rent = parseFloat(data.rent) || 0;
+    const food = parseFloat(data.food) || 0;
+    const transport = parseFloat(data.transport) || 0;
+    const tuitionAmount = parseFloat(data.tuitionAmount) || 0;
+    
+    const totalExpenses = rent + food + transport;
+    const totalSpent = totalExpenses + tuitionAmount;
+    const remaining = monthlyBudget - totalSpent;
+    
+    setBudgetData({
+      spent: totalSpent,
+      saved: remaining > 0 ? remaining : 0,
+      budget: monthlyBudget,
+      totalExpenses: totalSpent,
+      totalIncome: monthlyBudget,
+      remaining: remaining
+    });
+
+    setExpenseDetails({
+      rent: rent,
+      food: food,
+      transport: transport,
+      tuitionAmount: tuitionAmount
+    });
+
+    // Mettre à jour les paiements récurrents
+    setRecurringPayments(prev => prev.map(payment => {
+      if (payment.title === 'Loyer') return { ...payment, amount: rent };
+      if (payment.title === 'Transport') return { ...payment, amount: transport };
+      return payment;
+    }));
+
+    // Mettre à jour les objectifs à court terme
+    setShortTermGoals(prev => prev.map(goal => {
+      if (goal.title === "Fonds d'urgence") {
+        return { 
+          ...goal, 
+          target: monthlyBudget * 3, 
+          current: remaining > 0 ? remaining : 0 
+        };
+      }
+      return goal;
+    }));
   };
 
+  // Charger les données quand l'écran devient visible
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        await loadBudgetData();
+      };
+      fetchData();
+    }, [])
+  );
+
+  // Charger au montage du composant
   useEffect(() => {
     loadBudgetData();
   }, []);
@@ -166,7 +235,7 @@ export default function OverviewScreen() {
       setActiveTip((prev) => (prev + 1) % tips.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [budgetData]); 
+  }, [expenseDetails, budgetData]); 
 
   const theme = darkMode ? styles.dark : styles.light;
 
@@ -175,17 +244,16 @@ export default function OverviewScreen() {
 
   // Fonction pour calculer les tendances (simulation)
   const calculateTrend = (current, category) => {
-    // Simulation de données du mois précédent
     const lastMonthData = {
       spent: current * 1.12, 
       saved: current * 0.92  
     };
     
     if (category === 'spent') {
-      const difference = ((lastMonthData.spent - current) / lastMonthData.spent) * 100;
+      const difference = ((lastMonthData.spent - current) / (lastMonthData.spent || 1)) * 100;
       return Math.round(difference);
     } else if (category === 'saved') {
-      const difference = ((current - lastMonthData.saved) / lastMonthData.saved) * 100;
+      const difference = ((current - lastMonthData.saved) / (lastMonthData.saved || 1)) * 100;
       return Math.round(difference);
     }
     return 0;
@@ -205,6 +273,11 @@ export default function OverviewScreen() {
       default:
         return COLORS.primary;
     }
+  };
+
+  const handleRefresh = async () => {
+    await loadBudgetData();
+    Alert.alert('Actualisé', 'Les données ont été mises à jour');
   };
 
   return (
@@ -287,9 +360,12 @@ export default function OverviewScreen() {
         {/* Bouton pour actualiser les données */}
         <TouchableOpacity 
           style={[styles.refreshButton, theme.card]} 
-          onPress={loadBudgetData}
+          onPress={handleRefresh}
+          disabled={loading}
         >
-          <Text style={theme.text}>🔄 Refresh Data</Text>
+          <Text style={theme.text}>
+            {loading ? '🔄 Chargement...' : '🔄 Actualiser les données'}
+          </Text>
         </TouchableOpacity>
 
         {/* Expense Distribution */}
@@ -297,19 +373,34 @@ export default function OverviewScreen() {
           <Text style={[styles.sectionTitle, theme.text]}>Distribution des dépenses</Text>
           <View style={styles.expenseDistribution}>
             <View style={styles.expenseCategory}>
-              <View style={[styles.categoryBar, { height: `${(expenseDetails.rent / budgetData.totalExpenses) * 100}%`, backgroundColor: COLORS.primary }]} />
+              <View style={[styles.categoryBar, { 
+                height: budgetData.totalExpenses > 0 ? `${(expenseDetails.rent / budgetData.totalExpenses) * 100}%` : '0%', 
+                backgroundColor: COLORS.primary 
+              }]} />
               <Text style={theme.textSecondary}>Loyer</Text>
-              <Text style={theme.text}>{Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100)}%</Text>
+              <Text style={theme.text}>
+                {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.rent / budgetData.totalExpenses) * 100) : 0}%
+              </Text>
             </View>
             <View style={styles.expenseCategory}>
-              <View style={[styles.categoryBar, { height: `${(expenseDetails.food / budgetData.totalExpenses) * 100}%`, backgroundColor: COLORS.success }]} />
+              <View style={[styles.categoryBar, { 
+                height: budgetData.totalExpenses > 0 ? `${(expenseDetails.food / budgetData.totalExpenses) * 100}%` : '0%', 
+                backgroundColor: COLORS.success 
+              }]} />
               <Text style={theme.textSecondary}>Nourriture</Text>
-              <Text style={theme.text}>{Math.round((expenseDetails.food / budgetData.totalExpenses) * 100)}%</Text>
+              <Text style={theme.text}>
+                {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.food / budgetData.totalExpenses) * 100) : 0}%
+              </Text>
             </View>
             <View style={styles.expenseCategory}>
-              <View style={[styles.categoryBar, { height: `${(expenseDetails.transport / budgetData.totalExpenses) * 100}%`, backgroundColor: COLORS.warning }]} />
+              <View style={[styles.categoryBar, { 
+                height: budgetData.totalExpenses > 0 ? `${(expenseDetails.transport / budgetData.totalExpenses) * 100}%` : '0%', 
+                backgroundColor: COLORS.warning 
+              }]} />
               <Text style={theme.textSecondary}>Transport</Text>
-              <Text style={theme.text}>{Math.round((expenseDetails.transport / budgetData.totalExpenses) * 100)}%</Text>
+              <Text style={theme.text}>
+                {budgetData.totalExpenses > 0 ? Math.round((expenseDetails.transport / budgetData.totalExpenses) * 100) : 0}%
+              </Text>
             </View>
           </View>
         </View>
@@ -371,7 +462,7 @@ export default function OverviewScreen() {
           <View style={styles.healthScore}>
             <View style={styles.scoreCircle}>
               <Text style={[styles.scoreNumber, theme.text]}>
-                {Math.round((budgetData.saved / budgetData.budget) * 100)}
+                {budgetData.budget > 0 ? Math.round((budgetData.saved / budgetData.budget) * 100) : 0}
               </Text>
               <Text style={theme.textSecondary}>points</Text>
             </View>
@@ -458,7 +549,7 @@ export default function OverviewScreen() {
                     <View style={[
                       styles.progressBar,
                       { 
-                        width: `${Math.min((goal.current / goal.target) * 100, 100)}%`,
+                        width: goal.target > 0 ? `${Math.min((goal.current / goal.target) * 100, 100)}%` : '0%',
                         backgroundColor: getPriorityColor(goal.priority)
                       }
                     ]} />
@@ -468,7 +559,7 @@ export default function OverviewScreen() {
                     <Text style={theme.textSecondary}>/ {goal.target} €</Text>
                   </View>
                   <Text style={[styles.goalPercentage, { color: getPriorityColor(goal.priority) }]}>
-                    {Math.round((goal.current / goal.target) * 100)}%
+                    {goal.target > 0 ? Math.round((goal.current / goal.target) * 100) : 0}%
                   </Text>
                 </View>
               </View>
@@ -622,6 +713,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 8,
     marginBottom: 8,
+    minHeight: 10, // Hauteur minimale pour la visibilité
   },
   transactionList: {
     gap: 12,

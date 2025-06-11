@@ -9,7 +9,9 @@ import {
   StyleSheet,
   Dimensions,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Alert,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +19,7 @@ import { Plus, Search, Trash2, Calendar, ChevronDown } from 'lucide-react-native
 import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
+import { MaterialIcons } from '@expo/vector-icons';
 
 // Catégories de dépenses prédéfinies
 const categories = [
@@ -38,12 +41,12 @@ export default function ExpensesScreen() {
     title: "",
     amount: "",
     category: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toISOString().split('T')[0],
     description: "",
   });
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   // Charger les dépenses depuis AsyncStorage
@@ -53,7 +56,7 @@ export default function ExpensesScreen() {
 
   const loadBudgetDataFromServer = async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem('token');
       const API_BASE_URL = 'http://10.0.2.2:5000/api';
 
       if (token) {
@@ -71,89 +74,52 @@ export default function ExpensesScreen() {
           
           // Convertir les données du serveur au format du formulaire
           const formattedData = {
-            budget: data.data.income.monthlyBudget,
-            hasTuition: data.data.expenses.education.hasTuition,
-            tuitionAmount: data.data.expenses.education.tuitionAmount,
-            rent: data.data.expenses.fixed.rent,
-            food: data.data.expenses.fixed.food,
-            transport: data.data.expenses.fixed.transport,
+            budget: data.monthlyBudget || 0,
+            hasTuition: data.hasTuition || false,
+            tuitionAmount: data.tuitionAmount || 0,
+            rent: data.expenses?.rent || 0,
+            food: data.expenses?.food || 0,
+            transport: data.expenses?.transport || 0,
           };
 
           // Sauvegarder les données dans AsyncStorage
           await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-          await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
-          
-          // Créer des dépenses à partir des données
-          const newExpenses = [
+          await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.analysis || {}));
+
+          // Mettre à jour l'état local
+          setExpenses([
             {
-              id: 'rent-' + Date.now(),
-              title: 'Loyer',
-              amount: data.data.expenses.fixed.rent,
-              category: 'housing',
-              date: new Date().toISOString().slice(0, 10),
-              description: 'Loyer mensuel'
+              category: 'Loyer',
+              amount: formattedData.rent,
+              icon: 'home',
+              color: '#FF6B6B'
             },
             {
-              id: 'food-' + Date.now(),
-              title: 'Nourriture',
-              amount: data.data.expenses.fixed.food,
-              category: 'food',
-              date: new Date().toISOString().slice(0, 10),
-              description: 'Budget alimentaire'
+              category: 'Alimentation',
+              amount: formattedData.food,
+              icon: 'restaurant',
+              color: '#4CAF50'
             },
             {
-              id: 'transport-' + Date.now(),
-              title: 'Transport',
-              amount: data.data.expenses.fixed.transport,
-              category: 'transport',
-              date: new Date().toISOString().slice(0, 10),
-              description: 'Transport mensuel'
+              category: 'Transport',
+              amount: formattedData.transport,
+              icon: 'directions-bus',
+              color: '#2196F3'
+            },
+            {
+              category: 'Frais de scolarité',
+              amount: formattedData.tuitionAmount,
+              icon: 'school',
+              color: '#9C27B0'
             }
-          ];
+          ].filter(expense => expense.amount > 0));
 
-          if (data.data.expenses.education.hasTuition === 'yes' && data.data.expenses.education.tuitionAmount > 0) {
-            newExpenses.push({
-              id: 'tuition-' + Date.now(),
-              title: 'Frais de scolarité',
-              amount: data.data.expenses.education.tuitionAmount,
-              category: 'education',
-              date: new Date().toISOString().slice(0, 10),
-              description: 'Frais de scolarité'
-            });
-          }
-
-          // Ajouter les autres dépenses fixes
-          if (data.data.expenses.fixed.utilities) {
-            newExpenses.push({
-              id: 'utilities-' + Date.now(),
-              title: 'Factures',
-              amount: data.data.expenses.fixed.utilities,
-              category: 'housing',
-              date: new Date().toISOString().slice(0, 10),
-              description: 'Électricité, eau, etc.'
-            });
-          }
-
-          // Ajouter les dépenses variables
-          Object.entries(data.data.expenses.variable).forEach(([key, amount]) => {
-            if (amount > 0) {
-              newExpenses.push({
-                id: `${key}-${Date.now()}`,
-                title: key.charAt(0).toUpperCase() + key.slice(1),
-                amount: amount,
-                category: key === 'entertainment' ? 'entertainment' : 'other',
-                date: new Date().toISOString().slice(0, 10),
-                description: `Dépenses ${key}`
-              });
-            }
-          });
-
-          setExpenses(newExpenses);
-          await AsyncStorage.setItem('expenses', JSON.stringify(newExpenses));
           return formattedData;
+        } else {
+          console.error('Erreur lors de la récupération des données:', response.status);
+          return null;
         }
       }
-      return null;
     } catch (error) {
       console.error('Erreur lors du chargement des données du serveur:', error);
       return null;
@@ -186,28 +152,29 @@ export default function ExpensesScreen() {
     }
   };
 
-  const handleAddExpense = async () => {
-    if (newExpense.title && newExpense.amount && newExpense.category) {
-      const expense = {
-        id: Date.now().toString(),
-        title: newExpense.title,
-        amount: parseFloat(newExpense.amount),
-        category: newExpense.category,
-        date: newExpense.date || new Date().toISOString().slice(0, 10),
-        description: newExpense.description,
-      };
-      const updatedExpenses = [...expenses, expense];
-      setExpenses(updatedExpenses);
-      await saveExpenses(updatedExpenses);
-      setNewExpense({
-        title: "",
-        amount: "",
-        category: "",
-        date: new Date().toISOString().slice(0, 10),
-        description: "",
-      });
-      setShowAddModal(false);
+  const handleAddExpense = () => {
+    if (!newExpense.category || !newExpense.amount) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+      return;
     }
+
+    const expenseToAdd = {
+      id: Date.now().toString(),
+      category: newExpense.category,
+      amount: parseFloat(newExpense.amount),
+      icon: getCategoryIcon(newExpense.category),
+      color: getCategoryColor(newExpense.category)
+    };
+
+    setExpenses(prev => [...prev, expenseToAdd]);
+    setShowAddModal(false);
+    setNewExpense({
+      title: "",
+      amount: "",
+      category: "",
+      date: new Date().toISOString().split('T')[0],
+      description: ""
+    });
   };
 
   const handleDeleteExpense = async (id) => {
@@ -216,9 +183,32 @@ export default function ExpensesScreen() {
     await saveExpenses(updatedExpenses);
   };
 
-  const getCategoryIcon = (categoryId) => {
-    const category = categories.find((cat) => cat.id === categoryId);
-    return category ? category.icon : "📦";
+  const getCategoryIcon = (category) => {
+    const categoryMap = {
+      'Loyer': 'home',
+      'Alimentation': 'restaurant',
+      'Transport': 'directions-bus',
+      'Frais de scolarité': 'school',
+      'Loisirs': 'local-activity',
+      'Shopping': 'shopping-cart',
+      'Santé': 'local-hospital',
+      'Autres': 'more-horiz'
+    };
+    return categoryMap[category] || 'more-horiz';
+  };
+
+  const getCategoryColor = (category) => {
+    const colorMap = {
+      'Loyer': '#FF6B6B',
+      'Alimentation': '#4CAF50',
+      'Transport': '#2196F3',
+      'Frais de scolarité': '#9C27B0',
+      'Loisirs': '#FF9800',
+      'Shopping': '#E91E63',
+      'Santé': '#00BCD4',
+      'Autres': '#607D8B'
+    };
+    return colorMap[category] || '#607D8B';
   };
 
   const getCategoryLabel = (categoryId) => {
@@ -226,299 +216,233 @@ export default function ExpensesScreen() {
     return category ? category.label : "Autres";
   };
 
-  const filteredExpenses = expenses
-    .filter((expense) => {
-      const matchesFilter = filter === "all" || expense.category === filter;
-      const matchesSearch = expense.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expense.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesMonth = expense.date.startsWith(selectedMonth);
-      return matchesFilter && matchesSearch && matchesMonth;
-    })
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Filtrer les dépenses en fonction de la recherche
+  const getFilteredExpenses = () => {
+    let filtered = [...expenses];
+
+    // Filtre par recherche
+    if (searchTerm) {
+      filtered = filtered.filter(expense => {
+        const matchesSearch = expense.category.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesSearch;
+      });
+    }
+
+    // Filtre par catégorie
+    if (filter !== "all") {
+      filtered = filtered.filter(expense => expense.category.toLowerCase() === filter.toLowerCase());
+    }
+
+    // Filtre par mois - on ne filtre plus par mois car les dépenses n'ont plus de dates
+    // if (selectedMonth) {
+    //   filtered = filtered.filter(expense => {
+    //     const expenseDate = new Date(expense.date);
+    //     return expenseDate.toISOString().slice(0, 7) === selectedMonth;
+    //   });
+    // }
+
+    return filtered;
+  };
+
+  const filteredExpenses = getFilteredExpenses();
 
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   const theme = darkMode ? styles.dark : styles.light;
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Erreur de formatage de date:', error);
+      return '';
+    }
+  };
+
   return (
     <View style={[styles.container, theme.container]}>
-      <Header title="Dépenses" darkMode={darkMode} setDarkMode={setDarkMode} />
+      <StatusBar barStyle={darkMode ? "light-content" : "dark-content"} />
+      
+      <Header 
+        title="Dépenses" 
+        darkMode={darkMode} 
+        setDarkMode={setDarkMode}
+      />
 
-      <ScrollView style={styles.content}>
-        {/* Search and Add Button */}
-        <View style={styles.searchContainer}>
-          <View style={[styles.searchInputContainer, theme.card]}>
-            <Search color={theme.textSecondary.color} size={20} />
-            <TextInput
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChangeText={setSearchTerm}
-              style={[styles.searchInput, theme.text]}
-              placeholderTextColor={theme.textSecondary.color}
-            />
-          </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddModal(true)}
-          >
-            <Plus color="white" size={24} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Summary Card */}
-        <View style={[styles.summaryCard, theme.card]}>
-          <View>
-            <Text style={theme.textSecondary}>Total des dépenses</Text>
-            <Text style={[styles.totalAmount, theme.text]}>
-              {totalExpenses.toFixed(2)} €
-            </Text>
-          </View>
-
-          <View style={styles.filterContainer}>
+      <View style={styles.content}>
+        {/* Filtres */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.filtersContainer}
+        >
+          {[
+            {id: "all", label: "Tout"},
+            {id: "Loyer", label: "Loyer"},
+            {id: "Alimentation", label: "Alim."},
+            {id: "Transport", label: "Transport"},
+            {id: "Frais de scolarité", label: "Scolarité"},
+            {id: "Loisirs", label: "Loisirs"},
+            {id: "Shopping", label: "Shopping"},
+            {id: "Santé", label: "Santé"},
+            {id: "Autres", label: "Autres"}
+          ].map((category) => (
             <TouchableOpacity
-              style={[styles.filterButton, theme.card]}
-              onPress={() => setShowCategoryPicker(true)}
+              key={category.id}
+              style={[
+                styles.filterButton,
+                filter === category.id && styles.activeFilter,
+                { backgroundColor: filter === category.id ? getCategoryColor(category.id) : theme.card.backgroundColor }
+              ]}
+              onPress={() => setFilter(category.id)}
             >
-              <Text style={theme.text}>
-                {filter === "all" ? "Toutes" : getCategoryLabel(filter)}
+              <Text style={[
+                styles.filterText,
+                filter === category.id ? styles.activeFilterText : theme.text
+              ]}>
+                {category.label}
               </Text>
-              <ChevronDown size={20} color={theme.text.color} />
             </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-            <TouchableOpacity
-              style={[styles.filterButton, theme.card]}
-              onPress={() => {
-                // Implement date picker
-              }}
+        {/* Liste des dépenses */}
+        <ScrollView style={styles.expensesList}>
+          {filteredExpenses.map((expense) => (
+            <View 
+              key={expense.id || `${expense.category}-${Date.now()}-${Math.random()}`}
+              style={[styles.expenseCard, theme.card]}
             >
-              <Calendar size={20} color={theme.text.color} />
-              <Text style={theme.text}>{selectedMonth}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Expenses List */}
-        <View style={styles.expensesList}>
-          {filteredExpenses.length === 0 ? (
-            <View style={[styles.emptyState, theme.card]}>
-              <Text style={theme.textSecondary}>Aucune dépense trouvée</Text>
-              <TouchableOpacity
-                style={[styles.emptyStateButton, theme.card]}
-                onPress={() => setShowAddModal(true)}
-              >
-                <Plus size={20} color={theme.text.color} />
-                <Text style={theme.text}>Ajouter une dépense</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            filteredExpenses.map((expense) => (
-              <View key={expense.id} style={[styles.expenseItem, theme.card]}>
-                <View style={styles.expenseIcon}>
-                  <Text style={styles.categoryIcon}>
-                    {getCategoryIcon(expense.category)}
-                  </Text>
-                </View>
-
-                <View style={styles.expenseDetails}>
-                  <Text style={[styles.expenseTitle, theme.text]}>
-                    {expense.title}
-                  </Text>
-                  <View style={styles.expenseMetadata}>
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryLabel}>
-                        {getCategoryLabel(expense.category)}
-                      </Text>
-                    </View>
+              <View style={styles.expenseHeader}>
+                <View style={styles.expenseInfo}>
+                  <View style={[styles.categoryIcon, { backgroundColor: expense.color + '20' }]}>
+                    <MaterialIcons name={expense.icon} size={24} color={expense.color} />
+                  </View>
+                  <View style={styles.expenseDetails}>
+                    <Text style={theme.text}>{expense.category}</Text>
                     <Text style={theme.textSecondary}>
-                      {new Date(expense.date).toLocaleDateString()}
+                      {formatDate(expense.date)}
                     </Text>
                   </View>
-                  {expense.description && (
-                    <Text style={[styles.expenseDescription, theme.textSecondary]}>
-                      {expense.description}
-                    </Text>
-                  )}
                 </View>
-
-                <View style={styles.expenseActions}>
-                  <Text style={[styles.expenseAmount, theme.text]}>
-                    {expense.amount.toFixed(2)} €
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteExpense(expense.id)}
-                    style={styles.deleteButton}
-                  >
-                    <Trash2 size={20} color={COLORS.error} />
-                  </TouchableOpacity>
-                </View>
+                <Text style={[styles.expenseAmount, theme.text]}>
+                  {expense.amount.toFixed(2)} €
+                </Text>
               </View>
-            ))
-          )}
-        </View>
-      </ScrollView>
+            </View>
+          ))}
+        </ScrollView>
 
-      {/* Add Expense Modal */}
-      <Modal
-        visible={showAddModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAddModal(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalContainer}
+        {/* Bouton d'ajout */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddModal(true)}
         >
-          <View style={[styles.modalContent, theme.card]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, theme.text]}>
-                Ajouter une dépense
-              </Text>
+          <MaterialIcons name="add" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Modal d'ajout de dépense */}
+        <Modal
+          visible={showAddModal}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAddModal(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalContainer}
+          >
+            <View style={[styles.modalContent, theme.card]}>
+              <Text style={[styles.modalTitle, theme.text]}>Nouvelle dépense</Text>
+
               <TouchableOpacity
-                onPress={() => setShowAddModal(false)}
-                style={styles.closeButton}
+                style={[styles.categorySelector, theme.card]}
+                onPress={() => setShowCategoryPicker(true)}
               >
-                <Text style={theme.text}>×</Text>
+                <Text style={theme.text}>
+                  {newExpense.category || "Sélectionner une catégorie"}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={darkMode ? "#fff" : "#000"} />
               </TouchableOpacity>
-            </View>
 
-            <ScrollView style={styles.modalForm}>
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, theme.text]}>Titre</Text>
-                <TextInput
-                  value={newExpense.title}
-                  onChangeText={(text) => setNewExpense({ ...newExpense, title: text })}
-                  placeholder="Ex: Courses alimentaires"
-                  style={[styles.input, theme.card, theme.text]}
-                  placeholderTextColor={theme.textSecondary.color}
-                />
-              </View>
+              <TextInput
+                style={[styles.input, theme.card, theme.text]}
+                placeholder="Montant"
+                placeholderTextColor={darkMode ? "#666" : "#999"}
+                keyboardType="numeric"
+                value={newExpense.amount}
+                onChangeText={(text) => setNewExpense({ ...newExpense, amount: text })}
+              />
 
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, theme.text]}>Montant (€)</Text>
-                <TextInput
-                  value={newExpense.amount}
-                  onChangeText={(text) => setNewExpense({ ...newExpense, amount: text })}
-                  placeholder="0.00"
-                  keyboardType="numeric"
-                  style={[styles.input, theme.card, theme.text]}
-                  placeholderTextColor={theme.textSecondary.color}
-                />
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, theme.text]}>Catégorie</Text>
+              <View style={styles.modalActions}>
                 <TouchableOpacity
-                  style={[styles.input, theme.card]}
-                  onPress={() => setShowCategoryPicker(true)}
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setShowAddModal(false)}
                 >
-                  <Text style={theme.text}>
-                    {newExpense.category
-                      ? `${getCategoryIcon(newExpense.category)} ${getCategoryLabel(
-                          newExpense.category
-                        )}`
-                      : "Sélectionner une catégorie"}
-                  </Text>
+                  <Text style={styles.buttonText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={handleAddExpense}
+                >
+                  <Text style={styles.buttonText}>Ajouter</Text>
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, theme.text]}>Date</Text>
-                <TouchableOpacity
-                  style={[styles.input, theme.card]}
-                  onPress={() => {
-                    // Implement date picker
-                  }}
-                >
-                  <Text style={theme.text}>{newExpense.date}</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, theme.text]}>Description (optionnel)</Text>
-                <TextInput
-                  value={newExpense.description}
-                  onChangeText={(text) =>
-                    setNewExpense({ ...newExpense, description: text })
-                  }
-                  placeholder="Ajouter une description..."
-                  multiline
-                  numberOfLines={4}
-                  style={[styles.textArea, theme.card, theme.text]}
-                  placeholderTextColor={theme.textSecondary.color}
-                />
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.cancelButton, theme.card]}
-                onPress={() => setShowAddModal(false)}
-              >
-                <Text style={theme.text}>Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleAddExpense}
-              >
-                <Text style={styles.saveButtonText}>Enregistrer</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+          </KeyboardAvoidingView>
+        </Modal>
 
-      {/* Category Picker Modal */}
-      <Modal
-        visible={showCategoryPicker}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCategoryPicker(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, theme.card]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, theme.text]}>
-                Sélectionner une catégorie
-              </Text>
+        {/* Modal de sélection de catégorie */}
+        <Modal
+          visible={showCategoryPicker}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowCategoryPicker(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, theme.card]}>
+              <Text style={[styles.modalTitle, theme.text]}>Choisir une catégorie</Text>
+              <ScrollView style={styles.categoryList}>
+                {["Loyer", "Alimentation", "Transport", "Frais de scolarité", "Loisirs", "Shopping", "Santé", "Autres"].map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      styles.categoryItem,
+                      newExpense.category === category && styles.selectedCategory
+                    ]}
+                    onPress={() => {
+                      setNewExpense({ ...newExpense, category });
+                      setShowCategoryPicker(false);
+                    }}
+                  >
+                    <View style={styles.categoryItemContent}>
+                      <MaterialIcons 
+                        name={getCategoryIcon(category)} 
+                        size={24} 
+                        color={getCategoryColor(category)} 
+                      />
+                      <Text style={[styles.categoryItemText, theme.text]}>{category}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => setShowCategoryPicker(false)}
-                style={styles.closeButton}
               >
-                <Text style={theme.text}>×</Text>
+                <Text style={styles.buttonText}>Fermer</Text>
               </TouchableOpacity>
             </View>
-
-            <ScrollView style={styles.categoryList}>
-              <TouchableOpacity
-                style={[styles.categoryItem, filter === "all" && styles.selectedCategory]}
-                onPress={() => {
-                  setFilter("all");
-                  setShowCategoryPicker(false);
-                }}
-              >
-                <Text style={theme.text}>🔄 Toutes les catégories</Text>
-              </TouchableOpacity>
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[
-                    styles.categoryItem,
-                    filter === category.id && styles.selectedCategory,
-                  ]}
-                  onPress={() => {
-                    setFilter(category.id);
-                    setShowCategoryPicker(false);
-                  }}
-                >
-                  <Text style={theme.text}>
-                    {category.icon} {category.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </View>
 
       <BottomNav activeTab="expenses" darkMode={darkMode} />
     </View>
@@ -533,212 +457,157 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: 'white',
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    fontSize: 16,
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
-  },
-  summaryCard: {
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  totalAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+  filtersContainer: {
+    marginBottom: 8,
+    paddingHorizontal: 4,
+    height: 32,
   },
   filterButton: {
-    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    backgroundColor: '#f0f0f0',
+    minWidth: 50,
     alignItems: 'center',
-    gap: 8,
-    padding: 8,
-    borderRadius: 8,
+    height: 28,
+    justifyContent: 'center',
+  },
+  activeFilter: {
+    backgroundColor: COLORS.primary,
+  },
+  filterText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  activeFilterText: {
+    color: 'white',
   },
   expensesList: {
-    gap: 12,
+    flex: 0,
   },
-  expenseItem: {
-    flexDirection: 'row',
+  expenseCard: {
     padding: 16,
-    borderRadius: 16,
-    gap: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: 'white',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  expenseIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
+  expenseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  expenseInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   categoryIcon: {
-    fontSize: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   expenseDetails: {
     flex: 1,
-    gap: 4,
-  },
-  expenseTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  expenseMetadata: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-  },
-  categoryLabel: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  expenseDescription: {
-    fontSize: 14,
-  },
-  expenseActions: {
-    alignItems: 'flex-end',
-    gap: 8,
   },
   expenseAmount: {
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 12,
   },
-  deleteButton: {
-    padding: 8,
-  },
-  emptyState: {
-    padding: 32,
-    borderRadius: 16,
+  addButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
-  },
-  emptyStateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  closeButton: {
-    padding: 8,
-  },
-  modalForm: {
-    padding: 16,
-  },
-  formGroup: {
+  categorySelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
   },
   input: {
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+    marginBottom: 16,
+    fontSize: 16,
   },
-  textArea: {
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
     padding: 12,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    alignItems: 'center',
   },
   cancelButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    alignItems: 'center',
+    backgroundColor: '#e2e8f0',
   },
   saveButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
   },
-  saveButtonText: {
+  buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
   categoryList: {
-    padding: 16,
+    marginBottom: 20,
   },
   categoryItem: {
     padding: 16,
@@ -746,6 +615,14 @@ const styles = StyleSheet.create({
   },
   selectedCategory: {
     backgroundColor: COLORS.primary + '20',
+  },
+  categoryItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryItemText: {
+    fontSize: 16,
+    marginLeft: 12,
   },
   light: {
     container: {
@@ -759,14 +636,6 @@ const styles = StyleSheet.create({
     },
     card: {
       backgroundColor: "white",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
     },
   },
   dark: {
@@ -781,14 +650,6 @@ const styles = StyleSheet.create({
     },
     card: {
       backgroundColor: "#1e293b",
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.3,
-      shadowRadius: 3.84,
-      elevation: 5,
     },
   },
 }); 

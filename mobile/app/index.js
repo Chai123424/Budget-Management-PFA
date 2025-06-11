@@ -17,5 +17,5 @@ export default function Index() {
   }, [])
 
   if (isLoading) return <LoadingScreen />
-  return <Redirect href={userToken ? "/dashboard" : "/screens/LoginScreen/loginScreen"} />
+  return <Redirect href={userToken ? "/screens/overview/overview" : "/screens/LoginScreen/loginScreen"} />
 }

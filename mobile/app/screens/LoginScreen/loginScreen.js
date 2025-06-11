@@ -153,14 +153,103 @@ const LoginSignup = () => {
       console.log("Saving token:", response.data.token);
       console.log("Saving user data:", response.data.user);
       
-      await AsyncStorage.setItem("authToken", response.data.token);
-      await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
+      // Stocker les données utilisateur avec le nom
+      const userData = {
+        ...response.data.user,
+        name: response.data.user.name || name  // Utiliser le nom du formulaire si pas dans la réponse
+      };
+      
+      // Sauvegarder le token avec la même clé partout
+      await AsyncStorage.setItem("token", response.data.token);
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
       
       // Vérification immédiate que les données sont bien sauvegardées
-      const savedToken = await AsyncStorage.getItem("authToken");
+      const savedToken = await AsyncStorage.getItem("token");
       const savedUserData = await AsyncStorage.getItem("userData");
       console.log("Saved token verification:", savedToken);
       console.log("Saved user data verification:", savedUserData);
+
+      // Restaurer les données temporaires si elles existent
+      try {
+        const tempData = await AsyncStorage.getItem('tempUserData');
+        if (tempData) {
+          const parsedTempData = JSON.parse(tempData);
+          if (parsedTempData.formData) {
+            // Envoyer d'abord les données au serveur
+            try {
+              const updateResponse = await fetch(`${API_URL}/users/save_budget_data`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${response.data.token}`,
+                },
+                body: JSON.stringify(parsedTempData.formData)
+              });
+
+              if (updateResponse.ok) {
+                console.log('Données temporaires synchronisées avec le serveur');
+              }
+            } catch (syncError) {
+              console.log('Erreur lors de la synchronisation des données temporaires:', syncError);
+            }
+
+            // Sauvegarder localement
+            await AsyncStorage.setItem('budgetFormData', JSON.stringify(parsedTempData.formData));
+            console.log('Données temporaires restaurées localement');
+          }
+          // Supprimer les données temporaires après restauration
+          await AsyncStorage.removeItem('tempUserData');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la restauration des données temporaires:', error);
+      }
+
+      // Récupérer les données budgétaires du serveur
+      try {
+        const budgetResponse = await fetch(`${API_URL}/users/get_budget_data`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${response.data.token}`,
+          },
+        });
+
+        if (budgetResponse.ok) {
+          const budgetData = await budgetResponse.json();
+          console.log('Données budgétaires récupérées:', budgetData);
+
+          // Formater et sauvegarder les données du budget si elles n'existent pas déjà
+          const existingData = await AsyncStorage.getItem('budgetFormData');
+          if (!existingData) {
+            const formattedBudgetData = {
+              budget: budgetData.monthlyBudget || 0,
+              hasTuition: budgetData.hasTuition || 'no',
+              tuitionAmount: budgetData.tuitionAmount || 0,
+              rent: budgetData.expenses?.rent || 0,
+              food: budgetData.expenses?.food || 0,
+              transport: budgetData.expenses?.transport || 0,
+            };
+
+            await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedBudgetData));
+            console.log('Données budgétaires sauvegardées localement');
+          }
+        } else if (budgetResponse.status === 404) {
+          console.log('Aucune donnée budgétaire trouvée pour cet utilisateur');
+          // Restaurer les données temporaires si disponibles
+          const tempData = await AsyncStorage.getItem('tempUserData');
+          if (tempData) {
+            const parsedTempData = JSON.parse(tempData);
+            if (parsedTempData.formData) {
+              await AsyncStorage.setItem('budgetFormData', JSON.stringify(parsedTempData.formData));
+              console.log('Données temporaires restaurées comme données initiales');
+            }
+          }
+        } else {
+          console.log('Erreur lors de la récupération des données budgétaires:', budgetResponse.status);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données:', error);
+      }
       
       router.push("../overview/overview")
     } else {

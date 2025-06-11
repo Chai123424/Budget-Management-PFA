@@ -23,24 +23,50 @@ export default function Header({ title, darkMode, setDarkMode }) {
           style: "destructive",
           onPress: async () => {
             try {
-              // Sauvegarder les données du formulaire actuelles
+              // Récupérer les données actuelles du formulaire et du profil
               const formData = await AsyncStorage.getItem('budgetFormData');
               const userProfile = await AsyncStorage.getItem('userProfile');
+              const token = await AsyncStorage.getItem('token');
+
+              // Si on a un token valide, synchroniser avec le serveur avant la déconnexion
+              if (token && formData) {
+                try {
+                  const response = await fetch('http://10.0.2.2:5000/api/users/save_budget_data', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                  });
+
+                  if (response.ok) {
+                    console.log('Données synchronisées avec le serveur avant déconnexion');
+                  }
+                } catch (syncError) {
+                  console.log('Erreur de synchronisation, données locales conservées:', syncError);
+                }
+              }
 
               // Créer un objet pour stocker toutes les données à conserver
               const savedData = {
                 formData: formData ? JSON.parse(formData) : null,
-                profile: userProfile ? JSON.parse(userProfile) : null
+                profile: userProfile ? JSON.parse(userProfile) : null,
+                timestamp: new Date().toISOString()
               };
 
-              // Sauvegarder les données dans une nouvelle clé
-              await AsyncStorage.setItem('savedUserData', JSON.stringify(savedData));
+              // Sauvegarder les données dans une clé temporaire
+              await AsyncStorage.setItem('tempUserData', JSON.stringify(savedData));
 
               // Supprimer uniquement les données d'authentification
               await AsyncStorage.multiRemove([
                 'token',
-                'userId'
+                'userId',
+                'budgetFormData', // On supprime pour forcer la récupération depuis le serveur
+                'userProfile'
               ]);
+
+              console.log('Données sauvegardées avant déconnexion:', savedData);
 
               // Rediriger vers la page de connexion
               router.replace('/screens/LoginScreen/loginScreen');
@@ -143,4 +169,4 @@ const styles = StyleSheet.create({
   textDark: {
     color: '#0f172a',
   },
-}); 
+});

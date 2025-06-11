@@ -75,109 +75,6 @@ const calculateSavingsRecommendations = async () => {
   }
 };
 
-const loadBudgetDataFromServer = async () => {
-  try {
-    const token = await AsyncStorage.getItem('authToken');
-    const API_BASE_URL = 'http://10.0.2.2:5000/api';
-
-    if (token) {
-      const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Données du serveur:', data);
-        
-        // Convertir les données du serveur au format du formulaire
-        const formattedData = {
-          budget: data.data.monthlyBudget || 0,
-          hasTuition: data.data.hasTuition || 'no',
-          tuitionAmount: data.data.tuitionAmount || 0,
-          rent: data.data.expenses.rent || 0,
-          food: data.data.expenses.food || 0,
-          transport: data.data.expenses.transport || 0,
-        };
-
-        // Sauvegarder les données dans AsyncStorage
-        await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-        if (data.data.analysis) {
-          await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
-        }
-
-        // Calculer les recommandations d'épargne
-        const monthlyBudget = data.data.monthlyBudget || 0;
-        const totalExpenses = (data.data.expenses.rent || 0) + 
-                            (data.data.expenses.food || 0) + 
-                            (data.data.expenses.transport || 0);
-        const tuitionAmount = data.data.tuitionAmount || 0;
-        const totalIncome = monthlyBudget;
-        const availableForSavings = totalIncome - totalExpenses - tuitionAmount;
-
-        const recommendations = {
-          totalIncome,
-          totalExpenses: totalExpenses + tuitionAmount,
-          availableForSavings,
-          recommendations: {
-            emergency: Math.round(availableForSavings * 0.5 * 100) / 100,
-            goals: Math.round(availableForSavings * 0.3 * 100) / 100,
-            leisure: Math.round(availableForSavings * 0.2 * 100) / 100
-          }
-        };
-
-        setSavingsRecommendations(recommendations);
-
-        // Créer ou mettre à jour les comptes par défaut
-        if (accounts.length === 0) {
-          const defaultAccounts = [
-            {
-              id: 'emergency-' + Date.now(),
-              name: "Fonds d'urgence",
-              balance: data.data.savings?.currentAmount || 0,
-              accountType: "savings",
-              interestRate: 3,
-              color: "#10b981",
-              icon: "shield",
-              targetAmount: recommendations.recommendations.emergency,
-            },
-            {
-              id: 'goals-' + Date.now(),
-              name: "Objectifs",
-              balance: 0,
-              accountType: "investment",
-              interestRate: 4,
-              color: "#6366f1",
-              icon: "target",
-              targetAmount: recommendations.recommendations.goals,
-            },
-            {
-              id: 'checking-' + Date.now(),
-              name: "Compte Courant",
-              balance: totalIncome || 0,
-              accountType: "checking",
-              interestRate: 0,
-              color: "#8b5cf6",
-              icon: "credit-card",
-            }
-          ];
-          setAccounts(defaultAccounts);
-          await AsyncStorage.setItem("savingsAccounts", JSON.stringify(defaultAccounts));
-        }
-
-        return formattedData;
-      }
-    }
-    return null;
-  } catch (error) {
-    console.error('Erreur lors du chargement des données du serveur:', error);
-    return null;
-  }
-};
-
 export default function SavingsScreen() {
   const [darkMode, setDarkMode] = useState(true);
   const [accounts, setAccounts] = useState([]);
@@ -189,6 +86,124 @@ export default function SavingsScreen() {
   const [filterPeriod, setFilterPeriod] = useState("all");
   const [savingsRecommendations, setSavingsRecommendations] = useState(null);
   const [formData, setFormData] = useState(null);
+
+  const loadBudgetDataFromServer = async () => {
+    try {
+      console.log('Starting loadBudgetDataFromServer...');
+      const token = await AsyncStorage.getItem('authToken');
+      const API_BASE_URL = 'http://10.0.2.2:5000/api';
+
+      if (!token) {
+        console.log('No token found');
+        return null;
+      }
+
+      console.log('Making API request...');
+      const response = await fetch(`${API_BASE_URL}/users/get_budget_data`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.log('API response not OK:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('Données du serveur:', data);
+      
+      if (!data) {
+        console.log('No data received from server');
+        return null;
+      }
+
+      // Convertir les données du serveur au format du formulaire
+      const formattedData = {
+        budget: data.monthlyBudget || 0,
+        hasTuition: data.hasTuition || 'no',
+        tuitionAmount: data.tuitionAmount || 0,
+        rent: data.expenses?.rent || 0,
+        food: data.expenses?.food || 0,
+        transport: data.expenses?.transport || 0,
+      };
+
+      // Sauvegarder les données dans AsyncStorage
+      await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
+      if (data.analysis) {
+        await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.analysis));
+      }
+
+      // Calculer les recommandations d'épargne
+      const monthlyBudget = data.monthlyBudget || 0;
+      const totalExpenses = (data.expenses?.rent || 0) + 
+                          (data.expenses?.food || 0) + 
+                          (data.expenses?.transport || 0);
+      const tuitionAmount = data.tuitionAmount || 0;
+      const totalIncome = monthlyBudget;
+      const availableForSavings = totalIncome - totalExpenses - tuitionAmount;
+
+      const recommendations = {
+        totalIncome,
+        totalExpenses: totalExpenses + tuitionAmount,
+        availableForSavings,
+        recommendations: {
+          emergency: Math.round(availableForSavings * 0.5 * 100) / 100,
+          goals: Math.round(availableForSavings * 0.3 * 100) / 100,
+          leisure: Math.round(availableForSavings * 0.2 * 100) / 100
+        }
+      };
+
+      console.log('Setting savings recommendations:', recommendations);
+      setSavingsRecommendations(recommendations);
+
+      // Créer ou mettre à jour les comptes par défaut
+      if (accounts.length === 0) {
+        const defaultAccounts = [
+          {
+            id: 'emergency-' + Date.now(),
+            name: "Fonds d'urgence",
+            balance: data.savings?.currentAmount || 0,
+            accountType: "savings",
+            interestRate: 3,
+            color: "#10b981",
+            icon: "shield",
+            targetAmount: recommendations.recommendations.emergency,
+          },
+          {
+            id: 'goals-' + Date.now(),
+            name: "Objectifs",
+            balance: 0,
+            accountType: "investment",
+            interestRate: 4,
+            color: "#6366f1",
+            icon: "target",
+            targetAmount: recommendations.recommendations.goals,
+          },
+          {
+            id: 'checking-' + Date.now(),
+            name: "Compte Courant",
+            balance: totalIncome || 0,
+            accountType: "checking",
+            interestRate: 0,
+            color: "#8b5cf6",
+            icon: "credit-card",
+          }
+        ];
+        console.log('Setting default accounts:', defaultAccounts);
+        setAccounts(defaultAccounts);
+        await AsyncStorage.setItem("savingsAccounts", JSON.stringify(defaultAccounts));
+      }
+
+      setFormData(formattedData);
+      return formattedData;
+    } catch (error) {
+      console.error('Erreur lors du chargement des données du serveur:', error);
+      return null;
+    }
+  };
 
   // Charger les données depuis AsyncStorage
   useEffect(() => {
@@ -248,7 +263,7 @@ export default function SavingsScreen() {
         }
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des données du formulaire:', error);
+      console.error('Erreur lors du chargement des données:', error);
     }
   };
 
