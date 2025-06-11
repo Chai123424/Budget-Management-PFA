@@ -105,7 +105,7 @@ export default function Header({ title, darkMode, setDarkMode }) {
         <View style={styles.headerButtons}>
           <TouchableOpacity 
             style={styles.iconButton}
-            onPress={() => router.push('/chat')}
+            onPress={() => router.push('/screens/chat/chat')}
           >
             <FontAwesome 
               name="comments" 
