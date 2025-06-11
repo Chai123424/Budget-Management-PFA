@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL - change this to your Flask server address
-const API_URL = 'http://10.0.2.2:5000'; // For Android emulator
+const API_URL = 'http://10.0.2.2:5000/api'; // For Android emulator
 // const API_URL = 'http://localhost:5000/api'; // For iOS simulator
 // const API_URL = 'https://your-production-server.com/api'; // For production
 
@@ -88,6 +88,11 @@ export const isAuthenticated = async () => {
 export const saveBudgetData = async (formData) => {
   try {
     const response = await api.post('/users/save_budget_data', {
+      lastName: formData.lastName,
+      firstName: formData.firstName,
+      age: formData.age,
+      email: formData.email,
+      university: formData.university,
       budget: formData.budget,
       hasTuition: formData.hasTuition,
       tuitionAmount: formData.tuitionAmount,
@@ -105,6 +110,7 @@ export const saveBudgetData = async (formData) => {
     }
   }
 };
+
 
 export const getBudgetData = async () => {
   try {

@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 
 
+
 const Form = ({ darkMode, toggleTheme }) => {
   const navigation = useNavigation();
   const router = useRouter();
@@ -38,7 +39,7 @@ const Form = ({ darkMode, toggleTheme }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load saved data on component mount
-  useEffect(() => {
+  /*useEffect(() => {
     loadSavedData();
   }, []);
 
@@ -53,7 +54,7 @@ const Form = ({ darkMode, toggleTheme }) => {
     } catch (error) {
       console.error('Error loading saved data:', error);
     }
-  };
+  };*/
 
   const validateStep = () => {
     const newErrors = {};
@@ -138,11 +139,31 @@ const handleSubmit = async () => {
   try {
     setIsSubmitting(true);
     
-    // Get user credentials from AsyncStorage
-    const userId = await AsyncStorage.getItem('userId');
-    const token = await AsyncStorage.getItem('token');
+    // Vérification détaillée des credentials
+    console.log("Checking credentials...");
+    const token = await AsyncStorage.getItem('authToken');
+    const userDataStr = await AsyncStorage.getItem('userData');
     
-    console.log('User credentials:', { userId, token });
+    console.log("Retrieved token:", token);
+    console.log("Retrieved user data string:", userDataStr);
+    
+    if (!token || !userDataStr) {
+      console.log("Missing credentials - Token or user data not found");
+      Alert.alert(
+        "Authentication Required",
+        "Please login again to submit your data",
+        [
+          {
+            text: "OK",
+            onPress: () => router.push('../LoginScreen/loginScreen')
+          }
+        ]
+      );
+      return;
+    }
+
+    const userData = JSON.parse(userDataStr);
+    console.log("Parsed user data:", userData);
 
     const submissionData = {
       ...formData,
@@ -154,84 +175,71 @@ const handleSubmit = async () => {
       transport: parseFloat(formData.transport) || 0
     };
 
-    console.log('Submission data:', submissionData);
+    console.log('Prepared submission data:', submissionData);
 
-    // Save complete profile data locally first
-    await AsyncStorage.setItem('userProfile', JSON.stringify(submissionData));
-    await AsyncStorage.setItem('budgetFormData', JSON.stringify(submissionData));
-    
-    console.log('Data saved locally');
-
-    // **SECTION DÉCOMMENTÉE ET CORRIGÉE POUR LA BASE DE DONNÉES**
+    // === POST vers l'API ===
     try {
-      // Remplacez 'YOUR_API_ENDPOINT' par l'URL réelle de votre API
-      const API_BASE_URL = 'http://10.0.2.2:5000/api'; // À modifier
+      const API_BASE_URL = 'http://10.0.2.2:5000/api';
+      console.log('Making API request to:', `${API_BASE_URL}/users/save_budget_data`);
       
-      if (userId && token) {
-        const response = await fetch(`${API_BASE_URL}/budget-form`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            // Ajoutez d'autres headers si nécessaire
-          },
-          body: JSON.stringify({
-            userId,
-            ...submissionData
-          }),
-        });
+      const requestBody = {
+        ...submissionData,
+        userId: userData._id
+      };
+      
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      });
+      console.log('Request body:', requestBody);
 
-        const responseData = await response.json();
+      const response = await fetch(`${API_BASE_URL}/users/save_budget_data`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-        if (!response.ok) {
-          throw new Error(responseData.message || 'Failed to submit data to server');
-        }
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+        console.log('Parsed response data:', responseData);
+      } catch (e) {
+        console.log('Could not parse response as JSON:', e);
+      }
 
-        console.log('Data submitted to server successfully:', responseData);
-        
-        Alert.alert(
-          'Success',
-          'Form submitted and saved to database successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                try {
-                  navigation.navigate('Dashboard');
-                } catch (navError) {
-                  console.error('Navigation error:', navError);
-                  navigation.goBack();
-                }
+      if (!response.ok) {
+        throw new Error(responseData?.message || 'Failed to submit data to server');
+      }
+
+      console.log('Data submitted to server successfully:', responseData);
+      
+      Alert.alert(
+        'Success',
+        'Form submitted and saved to database successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              try {
+                router.push('../overview/overview'); 
+              } catch (navError) {
+                console.error('Navigation error:', navError);
+                router.back(); 
               }
             }
-          ]
-        );
-        
-      } else {
-  console.warn('No user credentials found, data saved locally only');
-  Alert.alert(
-    'Warning',
-    'Data saved locally. Please login to sync with server.',
-    [
-  {
-    text: 'OK',
-    onPress: () => {
-      try {
-        router.push('../LoginScreen/loginScreen'); 
-      } catch (navError) {
-        console.error('Navigation error:', navError);
-        router.back(); 
-      }
-    },
-  },
-  ]
-  );
-}
+          }
+        ]
+      );
       
     } catch (serverError) {
       console.error('Server submission error:', serverError);
-      
-      // Même en cas d'erreur serveur, on peut continuer avec les données locales
       Alert.alert(
         'Partial Success',
         `Data saved locally, but server sync failed: ${serverError.message}. You can try syncing later.`,
@@ -240,10 +248,10 @@ const handleSubmit = async () => {
             text: 'OK',
             onPress: () => {
               try {
-                navigation.navigate('Dashboard');
+                router.push('/overview/overview'); // ✅ navigation en cas d'erreur
               } catch (navError) {
                 console.error('Navigation error:', navError);
-                navigation.goBack();
+                router.back();
               }
             }
           }
@@ -268,7 +276,7 @@ const syncWithServer = async () => {
     if (savedData && userId && token) {
       const parsedData = JSON.parse(savedData);
       
-      const response = await fetch(`${API_BASE_URL}/budget-form`, {
+      const response = await fetch(`${API_BASE_URL}/users/save_budget_data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

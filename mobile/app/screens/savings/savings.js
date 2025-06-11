@@ -95,26 +95,32 @@ const loadBudgetDataFromServer = async () => {
         
         // Convertir les données du serveur au format du formulaire
         const formattedData = {
-          budget: data.data.income.monthlyBudget,
-          hasTuition: data.data.expenses.education.hasTuition,
-          tuitionAmount: data.data.expenses.education.tuitionAmount,
-          rent: data.data.expenses.fixed.rent,
-          food: data.data.expenses.fixed.food,
-          transport: data.data.expenses.fixed.transport,
+          budget: data.data.monthlyBudget || 0,
+          hasTuition: data.data.hasTuition || 'no',
+          tuitionAmount: data.data.tuitionAmount || 0,
+          rent: data.data.expenses.rent || 0,
+          food: data.data.expenses.food || 0,
+          transport: data.data.expenses.transport || 0,
         };
 
         // Sauvegarder les données dans AsyncStorage
         await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-        await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
+        if (data.data.analysis) {
+          await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
+        }
 
         // Calculer les recommandations d'épargne
-        const totalIncome = data.data.income.monthlyBudget + data.data.income.additionalIncome;
-        const totalExpenses = data.data.analysis.totalExpenses;
-        const availableForSavings = totalIncome - totalExpenses;
+        const monthlyBudget = data.data.monthlyBudget || 0;
+        const totalExpenses = (data.data.expenses.rent || 0) + 
+                            (data.data.expenses.food || 0) + 
+                            (data.data.expenses.transport || 0);
+        const tuitionAmount = data.data.tuitionAmount || 0;
+        const totalIncome = monthlyBudget;
+        const availableForSavings = totalIncome - totalExpenses - tuitionAmount;
 
         const recommendations = {
           totalIncome,
-          totalExpenses,
+          totalExpenses: totalExpenses + tuitionAmount,
           availableForSavings,
           recommendations: {
             emergency: Math.round(availableForSavings * 0.5 * 100) / 100,
@@ -131,7 +137,7 @@ const loadBudgetDataFromServer = async () => {
             {
               id: 'emergency-' + Date.now(),
               name: "Fonds d'urgence",
-              balance: data.data.savings.currentAmount || 0,
+              balance: data.data.savings?.currentAmount || 0,
               accountType: "savings",
               interestRate: 3,
               color: "#10b981",

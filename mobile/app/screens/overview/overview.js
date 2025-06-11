@@ -112,38 +112,44 @@ export default function OverviewScreen() {
           console.log('Données du serveur:', data);
           
           // Mettre à jour les données du budget
-          const totalIncome = data.data.income.monthlyBudget + data.data.income.additionalIncome;
-          const totalExpenses = data.data.analysis.totalExpenses;
-          const remaining = totalIncome - totalExpenses;
+          const monthlyBudget = data.data.monthlyBudget || 0;
+          const totalExpenses = (data.data.expenses.rent || 0) + 
+                              (data.data.expenses.food || 0) + 
+                              (data.data.expenses.transport || 0);
+          const tuitionAmount = data.data.tuitionAmount || 0;
+          const totalIncome = monthlyBudget;
+          const remaining = totalIncome - totalExpenses - tuitionAmount;
           
           setBudgetData({
-            spent: totalExpenses,
+            spent: totalExpenses + tuitionAmount,
             saved: remaining > 0 ? remaining : 0,
             budget: totalIncome,
-            totalExpenses: totalExpenses,
+            totalExpenses: totalExpenses + tuitionAmount,
             totalIncome: totalIncome,
             remaining: remaining
           });
 
           // Mettre à jour les détails des dépenses
           setExpenseDetails({
-            rent: data.data.expenses.fixed.rent,
-            food: data.data.expenses.fixed.food,
-            transport: data.data.expenses.fixed.transport,
-            tuitionAmount: data.data.expenses.education.tuitionAmount
+            rent: data.data.expenses.rent || 0,
+            food: data.data.expenses.food || 0,
+            transport: data.data.expenses.transport || 0,
+            tuitionAmount: data.data.tuitionAmount || 0
           });
 
           // Sauvegarder les données dans AsyncStorage
           const formattedData = {
-            budget: data.data.income.monthlyBudget,
-            hasTuition: data.data.expenses.education.hasTuition,
-            tuitionAmount: data.data.expenses.education.tuitionAmount,
-            rent: data.data.expenses.fixed.rent,
-            food: data.data.expenses.fixed.food,
-            transport: data.data.expenses.fixed.transport,
+            budget: monthlyBudget,
+            hasTuition: data.data.hasTuition || 'no',
+            tuitionAmount: data.data.tuitionAmount || 0,
+            rent: data.data.expenses.rent || 0,
+            food: data.data.expenses.food || 0,
+            transport: data.data.expenses.transport || 0,
           };
           await AsyncStorage.setItem('budgetFormData', JSON.stringify(formattedData));
-          await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
+          if (data.data.analysis) {
+            await AsyncStorage.setItem('budgetAnalysis', JSON.stringify(data.data.analysis));
+          }
         }
       }
     } catch (error) {

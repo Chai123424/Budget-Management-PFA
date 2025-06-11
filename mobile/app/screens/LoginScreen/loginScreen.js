@@ -150,9 +150,18 @@ const LoginSignup = () => {
     console.log("API Response:", response.data);
 
     if (action === "Login") {
+      console.log("Saving token:", response.data.token);
+      console.log("Saving user data:", response.data.user);
       
       await AsyncStorage.setItem("authToken", response.data.token);
       await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
+      
+      // Vérification immédiate que les données sont bien sauvegardées
+      const savedToken = await AsyncStorage.getItem("authToken");
+      const savedUserData = await AsyncStorage.getItem("userData");
+      console.log("Saved token verification:", savedToken);
+      console.log("Saved user data verification:", savedUserData);
+      
       router.push("../overview/overview")
     } else {
       
