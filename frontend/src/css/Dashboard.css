@@ -1,0 +1,1634 @@
+/* Base Variables */
+:root {
+  --primary: #8a7cff;
+  --primary-dark: #6366f1;
+  --primary-light: #a5a0ff;
+  --accent: #f43f5e;
+  --accent-dark: #e11d48;
+  --accent-light: #fb7185;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --text: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --background: #0f172a;
+  --card-bg: #1e293b;
+  --card-bg-light: #334155;
+  --border: #475569;
+}
+
+/* Light mode variables */
+.dbLightTheme {
+  --primary: #8a7cff;
+  --primary-dark: #6366f1;
+  --primary-light: #a5a0ff;
+  --accent: #f43f5e;
+  --accent-dark: #e11d48;
+  --accent-light: #fb7185;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --background: #f8fafc;
+  --card-bg: #ffffff;
+  --card-bg-light: #f1f5f9;
+  --border: #e2e8f0;
+}
+
+/* Base Styles */
+.dbDashboard {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dbLightTheme {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+.dbDarkTheme {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+/* Animated Background */
+.dbDashboard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: 20px 20px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dbLightTheme::before {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+}
+
+.dbDarkTheme::before {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.dbDashboard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dbDarkTheme::after {
+  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.1), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05), transparent 60%);
+}
+
+.dbLightTheme::after {
+  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.1), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.05), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03), transparent 60%);
+}
+
+/* Sidebar */
+.dbSidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  transition: all 0.3s ease;
+  z-index: 100;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.dbLightTheme .dbSidebar {
+  background: linear-gradient(180deg, var(--card-bg) 0%, var(--card-bg-light) 100%);
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSidebar {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbSidebarHeader {
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dbLightTheme .dbSidebarHeader {
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbLogo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.dbLogo img {
+  width: 32px;
+  height: 32px;
+}
+
+.dbDarkTheme .dbLogo {
+  color: var(--text);
+}
+
+.dbDarkTheme .dbLogo span {
+  background: linear-gradient(90deg, var(--primary-light), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbLightTheme .dbLogo span {
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbNav {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.dbNavSection {
+  margin-bottom: 28px;
+}
+
+.dbNavTitle {
+  padding: 0 24px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.dbLightTheme .dbNavTitle {
+  color: var(--text-secondary);
+}
+
+.dbDarkTheme .dbNavTitle {
+  color: var(--text-secondary);
+}
+
+.dbNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dbNav li {
+  margin: 4px 0;
+}
+
+.dbNav button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  color: inherit;
+  border-radius: 8px;
+  gap: 14px;
+  transition: all 0.2s;
+  margin: 0 8px;
+  font-weight: 500;
+}
+
+.dbLightTheme .dbNav button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbNav button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dbNav li.dbActive button {
+  font-weight: 600;
+  position: relative;
+}
+
+.dbLightTheme .dbNav li.dbActive button {
+  background: linear-gradient(90deg, rgba(138, 124, 255, 0.15), rgba(138, 124, 255, 0.05));
+  color: var(--primary);
+  border-left: 3px solid var(--primary);
+}
+
+.dbDarkTheme .dbNav li.dbActive button {
+  background: linear-gradient(90deg, rgba(138, 124, 255, 0.15), rgba(138, 124, 255, 0.05));
+  color: var(--primary-light);
+  border-left: 3px solid var(--primary);
+}
+
+.dbSidebarFooter {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dbLightTheme .dbSidebarFooter {
+  border-top-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dbAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.dbLightTheme .dbAvatar {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  color: white;
+}
+
+.dbDarkTheme .dbAvatar {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.dbUserName {
+  font-weight: 600;
+  margin: 0;
+  font-size: 14px;
+}
+
+.dbUserEmail {
+  margin: 0;
+  font-size: 12px;
+}
+
+.dbLightTheme .dbUserEmail {
+  color: var(--text-secondary);
+}
+
+.dbDarkTheme .dbUserEmail {
+  color: var(--text-secondary);
+}
+
+/* Mobile sidebar */
+@media (max-width: 767px) {
+  .dbSidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .dbSidebar.dbOpen {
+    transform: translateX(0);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .dbOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 99;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    pointer-events: all;
+  }
+}
+
+/* Main content */
+.dbMain {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .dbMain {
+    margin-left: 0;
+  }
+}
+
+/* Header */
+.dbHeader {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbHeader {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  height: 110px;
+}
+
+.dbDarkTheme .dbHeader {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  height: 110px;
+}
+
+.dbHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dbHeaderLeft h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dbMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbMenuButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbMenuButton:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Search bar styles */
+.dbSearchContainer {
+  flex: 1;
+  margin: 0 20px;
+  position: relative;
+}
+
+.dbSearchForm {
+  width: 100%;
+}
+
+.dbSearchInputWrapper {
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+  padding: 8px 16px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbSearchInputWrapper {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSearchInputWrapper {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dbLightTheme .dbSearchInputWrapper:focus-within {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-light);
+}
+
+.dbDarkTheme .dbSearchInputWrapper:focus-within {
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: var(--primary);
+}
+
+.dbSearchIcon {
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.dbSearchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  padding: 6px 0;
+  outline: none;
+}
+
+.dbSearchInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.dbSearchClearButton {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+}
+
+/* Search results styles */
+.dbSearchResults {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dbLightTheme .dbSearchResults {
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSearchResults {
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbSearchResults h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dbSearchResults ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dbSearchResults li {
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 4px;
+}
+
+.dbLightTheme .dbSearchResults li:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSearchResults li:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dbSearchResultContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.dbSearchResultTitle {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.dbSearchResultDetails {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 767px) {
+  .dbMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.dbHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dbIconButton,
+.dbThemeToggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbIconButton,
+.dbLightTheme .dbThemeToggle {
+  background: rgba(241, 245, 249, 0.7);
+  color: var(--text);
+}
+
+.dbDarkTheme .dbIconButton,
+.dbDarkTheme .dbThemeToggle {
+  background: rgba(30, 41, 59, 0.5);
+  color: var(--text);
+}
+
+.dbLightTheme .dbIconButton:hover,
+.dbLightTheme .dbThemeToggle:hover {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.dbDarkTheme .dbIconButton:hover,
+.dbDarkTheme .dbThemeToggle:hover {
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.dbNotificationBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+
+.dbUserDropdown {
+  position: relative;
+}
+
+.dbUserButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dbUserButton span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .dbUserButton span {
+    display: none;
+  }
+}
+
+.dbAvatarSmall {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbAvatarSmall {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  color: white;
+}
+
+.dbDarkTheme .dbAvatarSmall {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
+.dbDropdownContent {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  border-radius: 12px;
+  padding: 8px 0;
+  margin-top: 8px;
+  display: none;
+  z-index: 20;
+  animation: fadeIn 0.2s ease;
+}
+
+.dbLightTheme .dbDropdownContent {
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbDropdownContent {
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbUserDropdown:hover .dbDropdownContent {
+  display: block;
+}
+
+.dbDropdownContent a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dbLightTheme .dbDropdownContent a:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbDropdownContent a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Content */
+.dbContent {
+  flex: 1;
+  padding: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.dbWelcome {
+  margin-bottom: 28px;
+}
+
+.dbWelcome h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.dbWelcome h2 span {
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbWelcome p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Tab Navigation */
+.dbTabNav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid;
+  padding-bottom: 10px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.dbTabNav::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.dbLightTheme .dbTabNav {
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbTabNav {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dbTabButton {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.dbLightTheme .dbTabButton {
+  color: var(--text);
+}
+
+.dbDarkTheme .dbTabButton {
+  color: var(--text);
+}
+
+.dbLightTheme .dbTabButton.dbActiveTab {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.dbDarkTheme .dbTabButton.dbActiveTab {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+/* Stats grid */
+.dbStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+  .dbStatsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dbStatsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbStatCard {
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.dbLightTheme .dbStatCard {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbStatCard {
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbStatCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dbStatCard:hover::before {
+  opacity: 1;
+}
+
+.dbLightTheme .dbStatCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dbDarkTheme .dbStatCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.dbStatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dbStatTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dbStatIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: transform 0.3s ease;
+}
+
+.dbStatCard:hover .dbStatIcon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.dbPurple {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.dbBlue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.dbGreen {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dbOrange {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.dbRed {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.dbStatValue {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, var(--text), var(--text));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbStatTrend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.dbPositive {
+  color: var(--success);
+}
+
+.dbNegative {
+  color: var(--accent);
+}
+
+.dbNeutral {
+  color: var(--text-secondary);
+}
+
+/* Chart */
+.dbStatChart {
+  margin-top: 16px;
+}
+
+.dbChartBars {
+  display: flex;
+  align-items: flex-end;
+  height: 60px;
+  gap: 6px;
+}
+
+.dbBar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbBar {
+  background: linear-gradient(to top, var(--primary-dark), var(--primary-light));
+}
+
+.dbDarkTheme .dbBar {
+  background: linear-gradient(to top, var(--primary-dark), var(--primary-light));
+}
+
+.dbBar:hover {
+  transform: scaleY(1.1);
+  background: linear-gradient(to top, var(--accent-dark), var(--accent-light));
+}
+
+.dbBar.dbBlue {
+  background: linear-gradient(to top, #2563eb, #60a5fa);
+}
+
+.dbBar.dbBlue:hover {
+  background: linear-gradient(to top, #1d4ed8, #93c5fd);
+}
+
+.dbChartLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Progress bar */
+.dbProgressContainer {
+  height: 8px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dbLightTheme .dbProgressContainer {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dbProgressBar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+  background: linear-gradient(90deg, var(--success), #0d9488);
+}
+
+.dbProgressLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Pro Tip Card */
+.dbTipCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbTipCard {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbTipCard {
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbTipCard::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(245, 158, 11, 0.1), transparent 70%);
+  z-index: -1;
+}
+
+.dbLightTheme .dbTipCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dbDarkTheme .dbTipCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.dbTipHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.dbTipHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--warning), #fb923c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbTipIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--warning), #fb923c);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.dbTipCard:hover .dbTipIcon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.dbTipText {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: var(--text);
+  animation: fadeChange 0.5s ease;
+}
+
+@keyframes fadeChange {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.dbTipDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dbDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dbLightTheme .dbDot {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dbDarkTheme .dbDot {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dbActiveDot {
+  width: 10px;
+  height: 10px;
+}
+
+.dbLightTheme .dbActiveDot {
+  background-color: var(--warning);
+}
+
+.dbDarkTheme .dbActiveDot {
+  background-color: var(--warning);
+}
+
+/* Saving Strategies Card */
+.dbSavingCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbSavingCard {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbSavingCard {
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbSavingCard::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1), transparent 70%);
+  z-index: -1;
+}
+
+.dbLightTheme .dbSavingCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dbDarkTheme .dbSavingCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.dbSavingHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.dbSavingHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--success), #0d9488);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbSavingIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--success), #0d9488);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.dbSavingCard:hover .dbSavingIcon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.dbSavingText {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.dbViewMoreButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, var(--success), #0d9488);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dbViewMoreButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* AI Services Highlight Card */
+.dbAiServicesCard {
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbAiServicesCard {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dbDarkTheme .dbAiServicesCard {
+  background: rgba(30, 41, 59, 0.5);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.dbAiServicesCard::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(138, 124, 255, 0.1), transparent 70%);
+  z-index: -1;
+}
+
+.dbLightTheme .dbAiServicesCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dbDarkTheme .dbAiServicesCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.dbAiServicesHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.dbAiServicesHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbAiServicesIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.dbAiServicesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .dbAiServicesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dbAiServiceItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dbLightTheme .dbAiServiceItem {
+  background: rgba(241, 245, 249, 0.7);
+}
+
+.dbDarkTheme .dbAiServiceItem {
+  background: rgba(30, 41, 59, 0.3);
+}
+
+.dbAiServiceItem::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  transition: all 0.5s;
+  opacity: 0;
+  z-index: 0;
+}
+
+.dbAiServiceItem:hover::before {
+  animation: shine 1.5s ease-out;
+  opacity: 1;
+}
+
+@keyframes shine {
+  0% {
+    left: -50%;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
+}
+
+.dbLightTheme .dbAiServiceItem:hover {
+  background: white;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dbDarkTheme .dbAiServiceItem:hover {
+  background: rgba(30, 41, 59, 0.6);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dbAiServiceIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.dbAiServiceItem:hover .dbAiServiceIcon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.dbAiServiceContent {
+  flex: 1;
+  z-index: 1;
+}
+
+.dbAiServiceContent h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dbAiServiceContent p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.dbAiServiceArrow {
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.dbAiServiceItem:hover .dbAiServiceArrow {
+  transform: translateX(4px);
+  color: var(--primary);
+}
+
+/* Coming Soon Page */
+.dbComingSoon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 2rem;
+}
+
+.dbComingSoon h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dbComingSoonContent {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dbComingSoonIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  margin-bottom: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(138, 124, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(138, 124, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(138, 124, 255, 0);
+  }
+}
+
+.dbComingSoonContent p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  color: var(--text-secondary);
+}
+
+.dbBackButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.dbBackButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(138, 124, 255, 0.4);
+}
+
+/* Animations */
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(5%, 5%);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Add floating decorative elements */
+.dbDashboard::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Add gradient spheres in the background */
+.dbDashboard::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dbDarkTheme::after {
+  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.1), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05), transparent 60%);
+}
+
+.dbLightTheme::after {
+  background: radial-gradient(circle at 10% 10%, rgba(138, 124, 255, 0.1), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(244, 63, 94, 0.05), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.03), transparent 60%);
+}
+
+/* Add shine effect to cards */
+.dbStatCard::after,
+.dbTipCard::after,
+.dbSavingCard::after,
+.dbAiServicesCard::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  transition: all 0.5s;
+  opacity: 0;
+  z-index: 0;
+}
+
+.dbStatCard:hover::after,
+.dbTipCard:hover::after,
+.dbSavingCard:hover::after,
+.dbAiServicesCard:hover::after {
+  animation: shine 1.5s ease-out;
+  opacity: 1;
+}
