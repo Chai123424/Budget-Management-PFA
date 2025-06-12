@@ -33,7 +33,7 @@ import Savings from "./Savings";
 import GoalsPage  from "./Goals";
 import GroceryMap from "./GroceryMap";
 import SmartCart from "./SmartCart";
-import Chatbot1 from "./chatbot";
+import Chatbot1 from "./AIservice";
 
 
 export default function Dashboard() {
