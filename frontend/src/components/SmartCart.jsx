@@ -5,7 +5,7 @@ import {
   ShoppingCart,
   DollarSign,
   Calendar,
-  Sparkles,
+  ChefHat,
   Plus,
   Check,
   Star,
@@ -21,8 +21,12 @@ import {
   X,
 } from "lucide-react"
 import "../css/SmartCart.css"
+import { useNavigate } from 'react-router-dom';
 
 const SmartCart = ({ darkMode = true }) => {
+  // Add the navigate hook here
+  const navigate = useNavigate();
+
   // Constants - moved from backend to frontend
   const CURRENCY_SYMBOL = "DH";
   const STUDENT_MAX_PRICE = 25; 
@@ -48,6 +52,10 @@ const SmartCart = ({ darkMode = true }) => {
   const [debugInfo, setDebugInfo] = useState({})
   const [isUsingMockData, setIsUsingMockData] = useState(false)
   const [removedOriginalItems, setRemovedOriginalItems] = useState({})
+
+  const handleRecipesRedirect = () => {
+    navigate('/recommendation'); 
+  }
 
   // Product helpers
   const getProductName = (product) => {
@@ -474,10 +482,14 @@ const SmartCart = ({ darkMode = true }) => {
             <h1>Smart Student Cart</h1>
           </div>
         </div>
-        <div className="sc-ai-badge">
-          <Sparkles size={16} />
-          <span>Database Connected</span>
-        </div>
+        <button 
+          className="sc-recipes-badge"
+          onClick={handleRecipesRedirect}
+          title="Get recipe recommendations based on your cart"
+        >
+          <ChefHat size={16} />
+          <span>Recipe Ideas</span>
+        </button>
       </div>
 
       <div className="sc-budget-section">

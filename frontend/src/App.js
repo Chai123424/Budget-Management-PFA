@@ -11,6 +11,7 @@ import Dashboard from "./components/Dashboard"
 import Expenses from "./components/Expenses"
 import Savings from "./components/Savings"
 import Formulaire from "./components/Form"
+import Recommendation from "./components/Recommendation"
 import "./App.css"
 import "./css/Home.css"
 
@@ -175,6 +176,16 @@ function App() {
             ProtectedRoute,
             null,
             renderLayout(false, React.createElement(Savings))
+          )
+        }),
+
+        // Recommendation route WITHOUT navbar
+        React.createElement(Route, {
+          path: "/recommendation",
+          element: React.createElement(
+            ProtectedRoute,
+            null,
+            renderLayout(false, React.createElement(Recommendation, { darkMode: darkMode, toggleTheme: toggleTheme }))
           )
         }),
 

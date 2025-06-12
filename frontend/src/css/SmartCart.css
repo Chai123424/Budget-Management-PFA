@@ -144,7 +144,7 @@
   font-weight: 500;
 }
 
-.sc-ai-badge {
+.sc-recipes-badge {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -160,7 +160,7 @@
   overflow: hidden;
 }
 
-.sc-ai-badge::before {
+.sc-recipes-badge::before {
   content: "";
   position: absolute;
   top: 0;
