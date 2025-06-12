@@ -50,7 +50,6 @@
   background: linear-gradient(135deg, var(--dark-bg) 0%, #1a202c 100%);
   color: var(--dark-text);
   margin-top: 750px;
-  width: 9000px;
 
 }
 
@@ -63,6 +62,7 @@
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  display: grid;
   grid-template-columns: 1fr 320px;
   gap: 2rem;
   align-items: start;
