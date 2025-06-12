@@ -18,6 +18,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../component/Header';
 import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
+import { Feather } from '@expo/vector-icons';
+
 
 const SMARTCART_URL = 'http://10.0.2.2:5002/api';
 
@@ -358,10 +360,19 @@ export default function BasketScreen() {
           )}
         </View>
       </ScrollView>
+      {basket.length > 0 && (
+  <TouchableOpacity
+    style={styles.floatingMapIconButton}
+    onPress={() => router.push("../Map/groceryMap")}
+  >
+    <Feather name="map-pin" size={28} color="white" />
+  </TouchableOpacity>
+)}
 
       <BottomNav activeTab="basket" darkMode={darkMode} />
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
@@ -561,4 +572,18 @@ const styles = StyleSheet.create({
     padding: 20,
     fontSize: 16,
   },
+  floatingMapIconButton: {
+  position: 'absolute',
+  bottom: 80,
+  right: 20,
+  backgroundColor: COLORS.primary,
+  padding: 16,
+  borderRadius: 50,
+  elevation: 5,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.3,
+  shadowRadius: 3,
+},
+
 });
