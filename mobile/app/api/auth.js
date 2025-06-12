@@ -125,3 +125,75 @@ export const getBudgetData = async () => {
     }
   }
 };
+
+// Goals API
+export const getGoals = async () => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await api.get('/users/get_goals', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    return response.data.goals;
+  } catch (error) {
+    console.error('Failed to fetch goals:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Session expired. Please login again.');
+    }
+    throw error;
+  }
+};
+
+export const saveGoals = async (goals) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await api.post('/users/save_goals', 
+      { goals },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to save goals:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Session expired. Please login again.');
+    }
+    throw error;
+  }
+};
+
+export const getProducts = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/products`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};

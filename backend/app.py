@@ -11,6 +11,8 @@ import certifi
 from db_connection import get_database_connection
 from dotenv import load_dotenv
 from functools import wraps
+from typing import Dict, List, Any
+from pymongo import MongoClient
 
 load_dotenv()
 
@@ -239,6 +241,108 @@ def get_expenses(current_user):
         return jsonify(expenses), 200
     else:
         return jsonify({'message': 'No expenses found', 'expenses': []}), 200
+
+def check_db():
+    if users_collection is None:
+        return jsonify({'error': 'Database connection not available'}), 500
+    return None
+
+@app.route('/api/users/get_goals', methods=['GET'])
+@token_required
+def get_goals(current_user: Dict[str, Any]):
+    try:
+        db_error = check_db()
+        if db_error:
+            return db_error
+            
+        user_id = current_user['_id']
+        user = users_collection.find_one({'_id': ObjectId(user_id)})
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        goals = user.get('goals', [])
+        return jsonify({'goals': goals})
+    except Exception as e:
+        print(f'Error getting goals: {str(e)}')
+        return jsonify({'error': 'Failed to get goals'}), 500
+
+@app.route('/api/users/save_goals', methods=['POST'])
+@token_required
+def save_goals(current_user: Dict[str, Any]):
+    try:
+        db_error = check_db()
+        if db_error:
+            return db_error
+            
+        user_id = current_user['_id']
+        goals: List[Dict[str, Any]] = request.json.get('goals', [])
+        
+        result = users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {'goals': goals}}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({'message': 'Goals saved successfully'})
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+    except Exception as e:
+        print(f'Error saving goals: {str(e)}')
+        return jsonify({'error': 'Failed to save goals'}), 500
+
+# Products routes
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    try:
+        # Get products collection from MongoDB Atlas
+        products_collection = db.products
+        products = list(products_collection.find())
+        
+        # Convert ObjectId to string for JSON serialization
+        for product in products:
+            product['_id'] = str(product['_id'])
+            
+        if not products:
+            # If no products exist, create some sample products
+            sample_products = [
+                {
+                    "name": "Ordinateur portable",
+                    "price": 8000.00,
+                    "image_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853",
+                    "category": "Électronique"
+                },
+                {
+                    "name": "Smartphone",
+                    "price": 3000.00,
+                    "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9",
+                    "category": "Électronique"
+                },
+                {
+                    "name": "Livres universitaires",
+                    "price": 500.00,
+                    "image_url": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6",
+                    "category": "Éducation"
+                },
+                {
+                    "name": "Abonnement transport",
+                    "price": 250.00,
+                    "image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957",
+                    "category": "Transport"
+                }
+            ]
+            
+            # Insert sample products
+            products_collection.insert_many(sample_products)
+            
+            # Fetch the newly inserted products
+            products = list(products_collection.find())
+            for product in products:
+                product['_id'] = str(product['_id'])
+        
+        return jsonify(products)
+    except Exception as e:
+        print(f"Error in get_products: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

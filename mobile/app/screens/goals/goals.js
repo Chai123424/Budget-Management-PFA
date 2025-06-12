@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Alert, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,6 +9,7 @@ import BottomNav from '../../component/BottomNav';
 import { COLORS } from '../theme/colors';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 
 const API_URL = "http://10.0.2.2:5000/api"; // Pour l'émulateur Android
 
@@ -75,6 +76,13 @@ export default function GoalsScreen() {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Recharger les données quand on revient sur la page
+  useFocusEffect(
+    useCallback(() => {
+      loadInitialData();
+    }, [])
+  );
 
   const loadInitialData = async () => {
     try {
@@ -491,7 +499,16 @@ export default function GoalsScreen() {
         return goal;
       }).filter(Boolean);
 
+      // Sauvegarder localement
       await AsyncStorage.setItem('goals', JSON.stringify(updatedGoals));
+      
+      // Sauvegarder sur le serveur
+      const success = await saveGoalsToServer(updatedGoals);
+      if (!success) {
+        Alert.alert('Attention', 'Le transfert a été effectué mais la synchronisation avec le serveur a échoué. Les changements seront synchronisés lors de la prochaine connexion.');
+      }
+      
+      // Mettre à jour l'état
       setGoals(updatedGoals);
 
       Alert.alert('Succès', `Transfert de ${amount.toFixed(2)} DH effectué avec succès !`);
