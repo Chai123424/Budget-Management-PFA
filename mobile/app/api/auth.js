@@ -1,0 +1,199 @@
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Base URL - change this to your Flask server address
+const API_URL = 'http://10.0.2.2:5000/api'; // For Android emulator
+// const API_URL = 'http://localhost:5000/api'; // For iOS simulator
+// const API_URL = 'https://your-production-server.com/api'; // For production
+
+// Create axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Auth functions
+export const register = async (name, email, password) => {
+  try {
+    const response = await api.post('/register', { name, email, password });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : { message: 'Network error' };
+  }
+};
+
+export const login = async (email, password) => {
+  try {
+    const response = await api.post('/login', { email, password });
+    
+    // Store token and user data
+    if (response.data.token) {
+      await AsyncStorage.setItem('token', response.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : { message: 'Network error' };
+  }
+};
+
+export const forgotPassword = async (email) => {
+  try {
+    const response = await api.post('/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : { message: 'Network error' };
+  }
+};
+
+export const resetPassword = async (token, password) => {
+  try {
+    const response = await api.post('/reset-password', { token, password });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : { message: 'Network error' };
+  }
+};
+
+export const logout = async () => {
+  await AsyncStorage.removeItem('token');
+  await AsyncStorage.removeItem('user');
+};
+
+export const getCurrentUser = async () => {
+  const userStr = await AsyncStorage.getItem('user');
+  return userStr ? JSON.parse(userStr) : null;
+};
+
+export const isAuthenticated = async () => {
+  const token = await AsyncStorage.getItem('token');
+  return !!token;
+};
+
+export const saveBudgetData = async (formData) => {
+  try {
+    const response = await api.post('/users/save_budget_data', {
+      lastName: formData.lastName,
+      firstName: formData.firstName,
+      age: formData.age,
+      email: formData.email,
+      university: formData.university,
+      budget: formData.budget,
+      hasTuition: formData.hasTuition,
+      tuitionAmount: formData.tuitionAmount,
+      rent: formData.rent,
+      food: formData.food,
+      transport: formData.transport,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Save budget error:', error);
+    if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { message: 'Network error' };
+    }
+  }
+};
+
+
+export const getBudgetData = async () => {
+  try {
+    const response = await api.get('/users/get_budget_data');
+    return response.data;
+  } catch (error) {
+    console.error('Get budget error:', error);
+    if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { message: 'Network error' };
+    }
+  }
+};
+
+// Goals API
+export const getGoals = async () => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await api.get('/users/get_goals', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    return response.data.goals;
+  } catch (error) {
+    console.error('Failed to fetch goals:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Session expired. Please login again.');
+    }
+    throw error;
+  }
+};
+
+export const saveGoals = async (goals) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await api.post('/users/save_goals', 
+      { goals },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to save goals:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Session expired. Please login again.');
+    }
+    throw error;
+  }
+};
+
+export const getProducts = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/products`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};
