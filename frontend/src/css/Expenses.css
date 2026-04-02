@@ -1,0 +1,534 @@
+/* Expenses Component Styles */
+.expensesContainer {
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.expensesHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .expensesHeader {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.expensesHeader h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+@media (min-width: 768px) {
+  .expensesHeader h1 {
+    font-size: 2rem;
+  }
+}
+
+.expensesActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .expensesActions {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* Search */
+.expensesSearchContainer {
+  position: relative;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .expensesSearchContainer {
+    width: 16rem;
+  }
+}
+
+.expensesSearchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg);
+  color: var(--text);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.expensesSearchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138, 124, 255, 0.1);
+}
+
+.expensesSearchInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.expensesSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.expensesAddButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.expensesAddButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(138, 124, 255, 0.4);
+}
+
+.expensesAddButtonOutline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.expensesAddButtonOutline:hover {
+  background-color: var(--card-bg-light);
+  transform: translateY(-2px);
+}
+
+/* Summary Card */
+.expensesSummaryCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.expensesSummaryCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.expensesSummaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .expensesSummaryContent {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.expensesSummaryTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 0 0.25rem 0;
+}
+
+.expensesSummaryAmount {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.expensesFilters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.expensesFilterSelect,
+.expensesFilterInput {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg-light);
+  color: var(--text);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.expensesFilterSelect:focus,
+.expensesFilterInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138, 124, 255, 0.1);
+}
+
+/* Expenses List */
+.expensesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expensesEmpty {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.expensesEmpty p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.expenseCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.expenseCard:hover {
+  background-color: var(--card-bg-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.expenseIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(138, 124, 255, 0.2), rgba(138, 124, 255, 0.1));
+  flex-shrink: 0;
+}
+
+.expenseIcon span {
+  font-size: 1.25rem;
+}
+
+.expenseDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.expenseTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 0.25rem 0;
+}
+
+.expenseMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.expenseCategoryBadge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 500;
+}
+
+.expenseDate {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.expenseDescription {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expenseActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.expenseAmount {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.expenseDeleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  border: none;
+  background-color: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expenseDeleteButton:hover {
+  background-color: rgba(244, 63, 94, 0.1);
+  transform: scale(1.1);
+}
+
+/* Modal */
+.expensesModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.expensesModalContent {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expensesModalHeader {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.expensesModalHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.expensesModalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expensesFormGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.expensesFormGroup label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.expensesFormInput,
+.expensesFormSelect,
+.expensesFormTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg-light);
+  color: var(--text);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.expensesFormInput:focus,
+.expensesFormSelect:focus,
+.expensesFormTextarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(138, 124, 255, 0.1);
+}
+
+.expensesFormInput::placeholder,
+.expensesFormTextarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.expensesFormTextarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.expensesModalFooter {
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.expensesCancelButton {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expensesCancelButton:hover {
+  background-color: var(--card-bg-light);
+}
+
+.expensesSaveButton {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(138, 124, 255, 0.3);
+}
+
+.expensesSaveButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(138, 124, 255, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 479px) {
+  .expenseCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .expenseDetails {
+    width: 100%;
+  }
+
+  .expenseActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .expenseDescription {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+  }
+
+  .expensesModalFooter {
+    flex-direction: column;
+  }
+
+  .expensesCancelButton,
+  .expensesSaveButton {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .expensesList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+  }
+}
